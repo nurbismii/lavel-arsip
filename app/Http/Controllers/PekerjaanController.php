@@ -128,7 +128,7 @@ class PekerjaanController extends Controller
         $data = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
             'parent_id' => ['nullable', 'integer', 'exists:pekerjaan,id'],
-            'lokasi_id' => ['nullable', 'integer', 'exists:lokasi_dokumen,id'],
+            'lokasi_id' => ['required', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptions()))],
             'dokumen.*' => ['nullable', 'file', 'max:20480'],

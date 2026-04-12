@@ -39,7 +39,7 @@
 
         <div class="mb-3">
             <label>Lokasi Dokumen</label>
-            <select name="lokasi_id" class="form-control">
+            <select name="lokasi_id" class="form-control" required>
                 <option value="">-- Pilih Lokasi --</option>
                 @foreach($lokasis as $lokasi)
                 <option value="{{ $lokasi->id }}" {{ old('lokasi_id') == $lokasi->id ? 'selected' : '' }}>
@@ -60,7 +60,7 @@
                 @endforeach
             </select>
             <small class="text-muted">
-                Jika memilih induk, tim/divisi akan mengikuti induknya. Supervisor hanya bisa melihat dokumen pada tim/divisinya.
+                Jika memilih parent, tim/divisi akan mengikuti parent tersebut saat disimpan.
             </small>
             @if($teams->isEmpty())
             <small class="text-muted d-block">
