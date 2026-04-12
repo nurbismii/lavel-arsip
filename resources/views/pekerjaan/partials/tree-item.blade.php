@@ -31,7 +31,7 @@
             </div>
 
             <small class="text-muted d-block ms-4 ps-1 tree-meta">
-                Folder dibuat: {{ $item->tanggal_dibuat }}
+                Folder dibuat: {{ optional($item->user)->name ?: '-' }} - {{ $item->tanggal_dibuat }}
             </small>
 
             <small class="text-muted d-block ms-4 ps-1 tree-meta">
