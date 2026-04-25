@@ -115,7 +115,7 @@
                     @endforeach
                 </select>
                 <small class="text-muted">
-                    Status selesai diisi dari halaman index dokumen beserta bukti penyelesaian.
+                    Status selesai diisi dari utama dokumen beserta bukti penyelesaian.
                 </small>
             </div>
 
