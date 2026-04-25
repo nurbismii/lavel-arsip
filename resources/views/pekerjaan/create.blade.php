@@ -69,13 +69,34 @@
             @endif
         </div>
 
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label>Mulai Penyelesaian</label>
+                <input
+                    type="date"
+                    name="tanggal_mulai_penyelesaian"
+                    class="form-control"
+                    value="{{ old('tanggal_mulai_penyelesaian') }}"
+                    required>
+            </div>
+            <div class="col-md-6">
+                <label>Target Selesai</label>
+                <input
+                    type="date"
+                    name="tanggal_target_penyelesaian"
+                    class="form-control"
+                    value="{{ old('tanggal_target_penyelesaian') }}"
+                    required>
+            </div>
+        </div>
+
         {{-- Dokumen Utama --}}
         <div class="mb-3">
             <label>Dokumen</label>
             <input type="file" id="dokumen-input" multiple class="form-control">
 
             <div class="mt-2">
-                <label class="form-label">Status Dokumen Utama</label>
+                <label class="form-label">Status Awal Dokumen Utama</label>
                 <select name="status_dokumen" class="form-control">
                     @foreach($statusDokumenOptions as $value => $label)
                     <option value="{{ $value }}" {{ old('status_dokumen', 'draft') === $value ? 'selected' : '' }}>
@@ -83,6 +104,9 @@
                     </option>
                     @endforeach
                 </select>
+                <small class="text-muted">
+                    Status selesai diisi dari halaman index dokumen beserta bukti penyelesaian.
+                </small>
             </div>
 
             <div id="hidden-inputs"></div>
@@ -183,6 +207,7 @@
                 Lokasi sub pekerjaan akan mengikuti lokasi pekerjaan utama saat disimpan.
             </small>
 
+            <label class="form-label small text-muted mb-1">Status Awal Sub Dokumen</label>
             <select name="sub_status_dokumen[${subIndex}]" class="form-control mb-2">
                 @foreach($statusDokumenOptions as $value => $label)
                 <option value="{{ $value }}" {{ $value === 'draft' ? 'selected' : '' }}>

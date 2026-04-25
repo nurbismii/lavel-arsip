@@ -77,6 +77,27 @@
             @endif
         </div>
 
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label>Mulai Penyelesaian</label>
+                <input
+                    type="date"
+                    name="tanggal_mulai_penyelesaian"
+                    class="form-control"
+                    value="{{ old('tanggal_mulai_penyelesaian', optional($pekerjaan->tanggal_mulai_penyelesaian)->format('Y-m-d')) }}"
+                    required>
+            </div>
+            <div class="col-md-6">
+                <label>Target Selesai</label>
+                <input
+                    type="date"
+                    name="tanggal_target_penyelesaian"
+                    class="form-control"
+                    value="{{ old('tanggal_target_penyelesaian', optional($pekerjaan->tanggal_target_penyelesaian)->format('Y-m-d')) }}"
+                    required>
+            </div>
+        </div>
+
         <div class="mb-4">
             <label>Tambah Dokumen</label>
             <input type="file" id="dokumen-input" multiple class="form-control">
@@ -85,7 +106,7 @@
             </small>
 
             <div class="mt-2">
-                <label class="form-label">Status Dokumen Baru</label>
+                <label class="form-label">Status Awal Dokumen Baru</label>
                 <select name="status_dokumen" class="form-control">
                     @foreach($statusDokumenOptions as $value => $label)
                     <option value="{{ $value }}" {{ old('status_dokumen', 'draft') === $value ? 'selected' : '' }}>
@@ -93,6 +114,9 @@
                     </option>
                     @endforeach
                 </select>
+                <small class="text-muted">
+                    Status selesai diisi dari halaman index dokumen beserta bukti penyelesaian.
+                </small>
             </div>
 
             <div id="hidden-inputs"></div>
@@ -116,17 +140,6 @@
                     <small class="text-muted d-block mt-1">
                         Disimpan: {{ $doc->tanggal_disimpan }} | Ukuran: {{ $doc->ukuran_file }}
                     </small>
-
-                    <div class="mt-2" style="max-width: 280px;">
-                        <label class="form-label small text-muted mb-1">Status</label>
-                        <select name="existing_status_dokumen[{{ $doc->id }}]" class="form-control form-control-sm">
-                            @foreach($statusDokumenOptions as $value => $label)
-                            <option value="{{ $value }}" {{ old('existing_status_dokumen.' . $doc->id, $doc->status_dokumen ?: 'draft') === $value ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
                 </div>
 
                 <button type="submit"

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Pekerjaan;
 use App\Models\Dokumen;
+use App\Models\DokumenBuktiPenyelesaian;
 use App\Models\Lokasi;
 use App\Models\Team;
+use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -45,17 +47,95 @@ class PekerjaanController extends Controller
         ]);
     }
 
+    public function lihatBuktiPenyelesaian(Dokumen $dokumen, DokumenBuktiPenyelesaian $buktiPenyelesaian = null)
+    {
+        $dokumen->load('pekerjaan');
+
+        if (!$dokumen->pekerjaan) {
+            abort(404);
+        }
+
+        $this->pastikanPekerjaanBisaDilihat($dokumen->pekerjaan);
+
+        if ($buktiPenyelesaian) {
+            abort_unless((int) $buktiPenyelesaian->dokumen_id === (int) $dokumen->id, 404);
+
+            $disk = $buktiPenyelesaian->storage_disk;
+
+            if (!$buktiPenyelesaian->path || !Storage::disk($disk)->exists($buktiPenyelesaian->path)) {
+                abort(404, 'Bukti penyelesaian tidak ditemukan.');
+            }
+
+            if ($disk === 'r2') {
+                return redirect()->away(Storage::disk('r2')->temporaryUrl(
+                    $buktiPenyelesaian->path,
+                    now()->addMinutes(5),
+                    [
+                        'ResponseContentDisposition' => 'inline; filename="' . addslashes($buktiPenyelesaian->nama_file) . '"',
+                    ]
+                ));
+            }
+
+            return response()->file(Storage::disk('local')->path($buktiPenyelesaian->path), [
+                'Content-Disposition' => 'inline; filename="' . $buktiPenyelesaian->nama_file . '"',
+            ]);
+        }
+
+        $buktiPertama = $dokumen->buktiPenyelesaians()->first();
+
+        if ($buktiPertama) {
+            return $this->lihatBuktiPenyelesaian($dokumen, $buktiPertama);
+        }
+
+        $disk = $dokumen->bukti_penyelesaian_storage_disk;
+
+        if (!$dokumen->bukti_penyelesaian_path || !Storage::disk($disk)->exists($dokumen->bukti_penyelesaian_path)) {
+            abort(404, 'Bukti penyelesaian tidak ditemukan.');
+        }
+
+        if ($disk === 'r2') {
+            return redirect()->away(Storage::disk('r2')->temporaryUrl(
+                $dokumen->bukti_penyelesaian_path,
+                now()->addMinutes(5),
+                [
+                    'ResponseContentDisposition' => 'inline; filename="' . addslashes($dokumen->bukti_penyelesaian_nama_file) . '"',
+                ]
+            ));
+        }
+
+        return response()->file(Storage::disk('local')->path($dokumen->bukti_penyelesaian_path), [
+            'Content-Disposition' => 'inline; filename="' . $dokumen->bukti_penyelesaian_nama_file . '"',
+        ]);
+    }
+
     public function index()
     {
         $search = trim((string) request('search', ''));
+        $statusDokumen = $this->resolveStatusDokumenFilter();
+        $statusDokumenOptions = Dokumen::statusOptions();
         $perPage = 10;
+        $relatedPekerjaanIdsByStatus = $statusDokumen !== ''
+            ? $this->findRelatedPekerjaanIdsByStatus($statusDokumen)
+            : [];
 
         $query = Pekerjaan::with(['lokasi', 'team'])
             ->withCount([
-                'subPekerjaans' => function ($query) {
+                'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                     $this->applyVisiblePekerjaanScope($query);
+
+                    if ($statusDokumen !== '') {
+                        if (empty($relatedPekerjaanIdsByStatus)) {
+                            $query->whereRaw('1 = 0');
+                        } else {
+                            $query->whereIn('id', $relatedPekerjaanIdsByStatus);
+                        }
+                    }
                 },
-                'dokumens',
+                'dokumens' => function ($query) use ($statusDokumen) {
+                    if ($statusDokumen !== '') {
+                        $query->where('status_dokumen', $statusDokumen);
+                    }
+                },
             ])
             ->whereNull('parent_id');
 
@@ -63,40 +143,83 @@ class PekerjaanController extends Controller
 
         $query->orderBy('id');
 
+        $rootIdFilters = [];
+
         if ($search !== '') {
             $rootIds = $this->findRelatedRootIds($search);
 
-            if (empty($rootIds)) {
-                $query->whereRaw('1 = 0');
-            } else {
-                $query->whereIn('id', $rootIds);
+            $rootIdFilters[] = $rootIds;
+        }
+
+        if ($statusDokumen !== '') {
+            $rootIdFilters[] = $this->findRootIdsFromRelatedPekerjaanIds($relatedPekerjaanIdsByStatus);
+        }
+
+        if (!empty($rootIdFilters)) {
+            $filteredRootIds = array_shift($rootIdFilters);
+
+            foreach ($rootIdFilters as $rootIds) {
+                $filteredRootIds = array_values(array_intersect($filteredRootIds, $rootIds));
             }
+
+            empty($filteredRootIds)
+                ? $query->whereRaw('1 = 0')
+                : $query->whereIn('id', $filteredRootIds);
         }
 
         $pekerjaans = $query->paginate($perPage)->withQueryString();
 
-        return view('pekerjaan.index', compact('pekerjaans', 'search'));
+        return view('pekerjaan.index', compact('pekerjaans', 'search', 'statusDokumen', 'statusDokumenOptions'));
     }
 
     public function treeContent(Pekerjaan $pekerjaan)
     {
         $this->pastikanPekerjaanBisaDilihat($pekerjaan);
 
+        $statusDokumen = $this->resolveStatusDokumenFilter();
+        $relatedPekerjaanIdsByStatus = $statusDokumen !== ''
+            ? $this->findRelatedPekerjaanIdsByStatus($statusDokumen)
+            : [];
+
         $pekerjaan->load([
             'lokasi',
             'team',
-            'dokumens' => function ($query) {
-                $query->orderBy('id');
+            'dokumens' => function ($query) use ($statusDokumen) {
+                if ($statusDokumen !== '') {
+                    $query->where('status_dokumen', $statusDokumen);
+                }
+
+                $query->with(['buktiPenyelesaians', 'peminjam'])->orderBy('id');
             },
-            'subPekerjaans' => function ($query) {
+            'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                 $this->applyVisiblePekerjaanScope($query);
+
+                if ($statusDokumen !== '') {
+                    if (empty($relatedPekerjaanIdsByStatus)) {
+                        $query->whereRaw('1 = 0');
+                    } else {
+                        $query->whereIn('id', $relatedPekerjaanIdsByStatus);
+                    }
+                }
 
                 $query->with(['lokasi', 'team'])
                     ->withCount([
-                        'subPekerjaans' => function ($query) {
+                        'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                             $this->applyVisiblePekerjaanScope($query);
+
+                            if ($statusDokumen !== '') {
+                                if (empty($relatedPekerjaanIdsByStatus)) {
+                                    $query->whereRaw('1 = 0');
+                                } else {
+                                    $query->whereIn('id', $relatedPekerjaanIdsByStatus);
+                                }
+                            }
                         },
-                        'dokumens',
+                        'dokumens' => function ($query) use ($statusDokumen) {
+                            if ($statusDokumen !== '') {
+                                $query->where('status_dokumen', $statusDokumen);
+                            }
+                        },
                     ])
                     ->orderBy('id');
             },
@@ -105,6 +228,8 @@ class PekerjaanController extends Controller
         return response()->json([
             'html' => view('pekerjaan.partials.tree-content', [
                 'item' => $pekerjaan,
+                'statusDokumen' => $statusDokumen,
+                'borrowerUsers' => $this->availableBorrowerUsers(),
             ])->render(),
         ]);
     }
@@ -118,7 +243,7 @@ class PekerjaanController extends Controller
             ->get();
         $lokasis = Lokasi::orderBy('nama_lokasi')->get();
         $teams = $this->availableTeamsForCurrentUser();
-        $statusDokumenOptions = Dokumen::statusOptions();
+        $statusDokumenOptions = Dokumen::statusOptionsForInput();
 
         return view('pekerjaan.create', compact('parents', 'lokasis', 'teams', 'statusDokumenOptions'));
     }
@@ -130,12 +255,14 @@ class PekerjaanController extends Controller
             'parent_id' => ['nullable', 'integer', 'exists:pekerjaan,id'],
             'lokasi_id' => ['required', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
-            'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptions()))],
+            'tanggal_mulai_penyelesaian' => ['required', 'date'],
+            'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
+            'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
             'dokumen.*' => ['nullable', 'file', 'max:20480'],
             'sub_judul' => ['nullable', 'array'],
             'sub_judul.*' => ['nullable', 'string', 'max:255'],
             'sub_status_dokumen' => ['nullable', 'array'],
-            'sub_status_dokumen.*' => ['nullable', Rule::in(array_keys(Dokumen::statusOptions()))],
+            'sub_status_dokumen.*' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
             'sub_dokumen' => ['nullable', 'array'],
             'sub_dokumen.*' => ['nullable', 'array'],
             'sub_dokumen.*.*' => ['nullable', 'file', 'max:20480'],
@@ -169,6 +296,8 @@ class PekerjaanController extends Controller
             'user_id' => auth()->id(),
             'lokasi_id' => $data['lokasi_id'] ?? null,
             'team_id' => $teamId,
+            'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
+            'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
         ]);
 
         $this->simpanDokumen(
@@ -191,6 +320,8 @@ class PekerjaanController extends Controller
                     'user_id' => auth()->id(),
                     'lokasi_id' => $data['lokasi_id'] ?? null,
                     'team_id' => $teamId,
+                    'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
+                    'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
                 ]);
 
                 $this->simpanDokumen(
@@ -223,7 +354,7 @@ class PekerjaanController extends Controller
             ->get();
         $lokasis = Lokasi::orderBy('nama_lokasi')->get();
         $teams = $this->availableTeamsForCurrentUser();
-        $statusDokumenOptions = Dokumen::statusOptions();
+        $statusDokumenOptions = Dokumen::statusOptionsForInput();
 
         return view('pekerjaan.edit', compact('pekerjaan', 'parents', 'lokasis', 'teams', 'statusDokumenOptions'));
     }
@@ -238,9 +369,9 @@ class PekerjaanController extends Controller
             'parent_id' => ['nullable', 'integer', 'exists:pekerjaan,id', Rule::notIn([$pekerjaan->id])],
             'lokasi_id' => ['nullable', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
-            'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptions()))],
-            'existing_status_dokumen' => ['nullable', 'array'],
-            'existing_status_dokumen.*' => ['nullable', Rule::in(array_keys(Dokumen::statusOptions()))],
+            'tanggal_mulai_penyelesaian' => ['required', 'date'],
+            'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
+            'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
             'dokumen.*' => ['nullable', 'file', 'max:20480'],
         ]);
 
@@ -271,17 +402,14 @@ class PekerjaanController extends Controller
             'parent_id' => $data['parent_id'] ?? null,
             'lokasi_id' => $data['lokasi_id'] ?? null,
             'team_id' => $teamId,
+            'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
+            'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
         ]);
 
         $this->simpanDokumen(
             $pekerjaan,
             $request->file('dokumen', []),
             $data['status_dokumen'] ?? Dokumen::STATUS_DRAFT
-        );
-
-        $this->updateStatusDokumenExisting(
-            $pekerjaan,
-            $data['existing_status_dokumen'] ?? []
         );
 
         ActivityLogService::log(
@@ -325,22 +453,86 @@ class PekerjaanController extends Controller
             abort(404);
         }
 
+        $status = (string) $request->input('status_dokumen');
+
+        $hasExistingProof = $dokumen->buktiPenyelesaians()->exists() || filled($dokumen->bukti_penyelesaian_path);
+
         $data = $request->validate([
             'status_dokumen' => ['required', Rule::in(array_keys(Dokumen::statusOptions()))],
+            'bukti_penyelesaian' => [
+                $status === Dokumen::STATUS_ARSIP && !$hasExistingProof ? 'required' : 'nullable',
+                'array',
+            ],
+            'bukti_penyelesaian.*' => [
+                'file',
+                'max:20480',
+            ],
+            'keterangan_penyelesaian' => [
+                $status === Dokumen::STATUS_ARSIP ? 'required' : 'nullable',
+                'string',
+                'max:1000',
+            ],
+            'peminjam_user_id' => [
+                $status === Dokumen::STATUS_AKTIF ? 'required' : 'nullable',
+                Rule::exists('users', 'id')->where(function ($query) {
+                    $query->where('is_active', 1);
+                }),
+            ],
         ]);
 
-        $dokumen->update([
+        if ($this->requestHasCompletionProofUploads($request)) {
+            try {
+                $this->ensureR2Configured();
+            } catch (RuntimeException $exception) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors(['bukti_penyelesaian' => $exception->getMessage()]);
+            }
+        }
+
+        $updates = [
             'status_dokumen' => $data['status_dokumen'],
-        ]);
+        ];
+
+        if ($data['status_dokumen'] === Dokumen::STATUS_ARSIP) {
+            $updates['keterangan_penyelesaian'] = $data['keterangan_penyelesaian'];
+            $updates['diselesaikan_pada'] = $dokumen->diselesaikan_pada ?: now();
+        } else {
+            $updates['diselesaikan_pada'] = null;
+        }
+
+        if ($data['status_dokumen'] === Dokumen::STATUS_AKTIF) {
+            $updates['peminjam_user_id'] = $data['peminjam_user_id'];
+            $updates['dipinjam_pada'] = (int) $dokumen->peminjam_user_id === (int) $data['peminjam_user_id'] && $dokumen->dipinjam_pada
+                ? $dokumen->dipinjam_pada
+                : now();
+        } else {
+            $updates['peminjam_user_id'] = null;
+            $updates['dipinjam_pada'] = null;
+        }
+
+        $dokumen->update($updates);
+
+        if ($data['status_dokumen'] === Dokumen::STATUS_ARSIP) {
+            $this->simpanBuktiPenyelesaian($dokumen, $request->file('bukti_penyelesaian', []));
+        }
+
+        $dokumen->load('peminjam');
+        $description = 'Mengubah status dokumen menjadi ' . $dokumen->status_dokumen_label . '.';
+
+        if ($dokumen->status_dokumen === Dokumen::STATUS_AKTIF && $dokumen->peminjam) {
+            $description .= ' Dipinjam oleh ' . $dokumen->peminjam->name . '.';
+        }
 
         ActivityLogService::log(
             'dokumen.status',
-            'Mengubah status dokumen menjadi ' . $dokumen->status_dokumen_label . '.',
+            $description,
             $dokumen
         );
 
         return redirect()
-            ->route('pekerjaan.edit', $pekerjaan->id)
+            ->back()
             ->with('success', 'Status dokumen berhasil diperbarui.');
     }
 
@@ -403,6 +595,77 @@ class PekerjaanController extends Controller
         }
 
         return array_values(array_unique($rootIds));
+    }
+
+    private function resolveStatusDokumenFilter(): string
+    {
+        $statusDokumen = (string) request('status_dokumen', '');
+
+        return array_key_exists($statusDokumen, Dokumen::statusOptions())
+            ? $statusDokumen
+            : '';
+    }
+
+    private function findRelatedPekerjaanIdsByStatus(string $statusDokumen): array
+    {
+        if (!array_key_exists($statusDokumen, Dokumen::statusOptions())) {
+            return [];
+        }
+
+        $pendingIds = Dokumen::query()
+            ->where('status_dokumen', $statusDokumen)
+            ->whereHas('pekerjaan', function ($query) {
+                $this->applyVisiblePekerjaanScope($query);
+            })
+            ->pluck('pekerjaan_id')
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($pendingIds)) {
+            return [];
+        }
+
+        $relatedIds = [];
+
+        while (!empty($pendingIds)) {
+            $itemsQuery = Pekerjaan::query()
+                ->select('id', 'parent_id')
+                ->whereIn('id', $pendingIds);
+
+            $this->applyVisiblePekerjaanScope($itemsQuery);
+
+            $items = $itemsQuery->get();
+            $nextIds = [];
+
+            foreach ($items as $item) {
+                $relatedIds[] = $item->id;
+
+                if ($item->parent_id !== null) {
+                    $nextIds[] = $item->parent_id;
+                }
+            }
+
+            $visitedIds = array_unique($relatedIds);
+            $pendingIds = array_values(array_diff(array_unique($nextIds), $visitedIds));
+        }
+
+        return array_values(array_unique($relatedIds));
+    }
+
+    private function findRootIdsFromRelatedPekerjaanIds(array $relatedPekerjaanIds): array
+    {
+        if (empty($relatedPekerjaanIds)) {
+            return [];
+        }
+
+        $query = Pekerjaan::query()
+            ->whereIn('id', $relatedPekerjaanIds)
+            ->whereNull('parent_id');
+
+        $this->applyVisiblePekerjaanScope($query);
+
+        return $query->pluck('id')->unique()->values()->all();
     }
 
     /**
@@ -486,6 +749,14 @@ class PekerjaanController extends Controller
             ->get();
     }
 
+    private function availableBorrowerUsers()
+    {
+        return User::query()
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+    }
+
     private function resolveAllowedTeamId($teamId): ?int
     {
         if (!$teamId) {
@@ -522,6 +793,36 @@ class PekerjaanController extends Controller
                 'path' => $path,
                 'status_dokumen' => $statusDokumen,
             ]);
+        }
+    }
+
+    private function simpanBuktiPenyelesaian(Dokumen $dokumen, $files): void
+    {
+        $files = is_array($files) ? $files : [$files];
+        $files = array_values(array_filter($files));
+
+        if (empty($files)) {
+            return;
+        }
+
+        $dokumen->loadMissing('pekerjaan');
+        $pekerjaanId = $dokumen->pekerjaan_id;
+
+        foreach ($files as $file) {
+            $path = $file->store('dokumen/' . $pekerjaanId . '/bukti-penyelesaian', 'r2');
+
+            DokumenBuktiPenyelesaian::create([
+                'dokumen_id' => $dokumen->id,
+                'nama_file' => $file->getClientOriginalName(),
+                'path' => $path,
+            ]);
+
+            if (!$dokumen->bukti_penyelesaian_path) {
+                $dokumen->forceFill([
+                    'bukti_penyelesaian_nama_file' => $file->getClientOriginalName(),
+                    'bukti_penyelesaian_path' => $path,
+                ])->save();
+            }
         }
     }
 
@@ -590,6 +891,29 @@ class PekerjaanController extends Controller
         if ($dokumen->path && Storage::disk($disk)->exists($dokumen->path)) {
             Storage::disk($disk)->delete($dokumen->path);
         }
+
+        $this->hapusBuktiPenyelesaian($dokumen);
+    }
+
+    private function hapusBuktiPenyelesaian(Dokumen $dokumen): void
+    {
+        $dokumen->loadMissing('buktiPenyelesaians');
+
+        foreach ($dokumen->buktiPenyelesaians as $buktiPenyelesaian) {
+            $disk = $buktiPenyelesaian->storage_disk;
+
+            if ($buktiPenyelesaian->path && Storage::disk($disk)->exists($buktiPenyelesaian->path)) {
+                Storage::disk($disk)->delete($buktiPenyelesaian->path);
+            }
+
+            $buktiPenyelesaian->delete();
+        }
+
+        $disk = $dokumen->bukti_penyelesaian_storage_disk;
+
+        if ($dokumen->bukti_penyelesaian_path && Storage::disk($disk)->exists($dokumen->bukti_penyelesaian_path)) {
+            Storage::disk($disk)->delete($dokumen->bukti_penyelesaian_path);
+        }
     }
 
     private function ensureR2Configured(): void
@@ -627,6 +951,17 @@ class PekerjaanController extends Controller
                 if ($file) {
                     return true;
                 }
+            }
+        }
+
+        return false;
+    }
+
+    private function requestHasCompletionProofUploads(Request $request): bool
+    {
+        foreach ((array) $request->file('bukti_penyelesaian', []) as $file) {
+            if ($file) {
+                return true;
             }
         }
 

@@ -40,27 +40,75 @@ class HomeController extends Controller
 
         $dashboardStats = [
             [
-                'label' => 'Total Arsip',
-                'value' => (int) ($statusTotals[Dokumen::STATUS_ARSIP] ?? 0),
-                'card_class' => 'bg-light',
-                'icon_wrapper_class' => 'dashboard-icon-primary',
-                'icon' => 'archive',
-            ],
-            [
-                'label' => 'Total Draft',
+                'label' => 'Dalam Proses',
                 'value' => (int) ($statusTotals[Dokumen::STATUS_DRAFT] ?? 0),
                 'card_class' => 'bg-light',
                 'icon_wrapper_class' => 'dashboard-icon-warning',
                 'icon' => 'draft',
+                'status' => Dokumen::STATUS_DRAFT,
             ],
             [
-                'label' => 'Total Aktif',
+                'label' => 'Sedang Digunakan',
                 'value' => (int) ($statusTotals[Dokumen::STATUS_AKTIF] ?? 0),
                 'card_class' => 'bg-light',
-                'icon_wrapper_class' => 'dashboard-icon-success',
+                'icon_wrapper_class' => 'dashboard-icon-primary',
                 'icon' => 'active',
+                'status' => Dokumen::STATUS_AKTIF,
+            ],
+            [
+                'label' => 'Selesai',
+                'value' => (int) ($statusTotals[Dokumen::STATUS_ARSIP] ?? 0),
+                'card_class' => 'bg-light',
+                'icon_wrapper_class' => 'dashboard-icon-success',
+                'icon' => 'archive',
+                'status' => Dokumen::STATUS_ARSIP,
             ],
         ];
+
+        $statusBadgeClasses = [
+            Dokumen::STATUS_DRAFT => 'bg-warning text-dark',
+            Dokumen::STATUS_AKTIF => 'bg-primary text-white',
+            Dokumen::STATUS_ARSIP => 'bg-success text-white',
+        ];
+
+        $statusBoards = [];
+
+        foreach (Dokumen::statusOptions() as $status => $label) {
+            $statusBoards[] = [
+                'status' => $status,
+                'label' => $label,
+                'total' => (int) ($statusTotals[$status] ?? 0),
+                'badge_class' => $statusBadgeClasses[$status] ?? 'bg-secondary text-white',
+                'documents' => (clone $dokumenQuery)
+                    ->with(['pekerjaan.lokasi', 'pekerjaan.team', 'peminjam'])
+                    ->where('status_dokumen', $status)
+                    ->latest()
+                    ->limit(5)
+                    ->get(),
+            ];
+        }
+
+        $deadlineAlertThreshold = now()->addDays(3)->toDateString();
+
+        $deadlineAlerts = (clone $dokumenQuery)
+            ->with(['pekerjaan.lokasi', 'pekerjaan.team'])
+            ->where('status_dokumen', '!=', Dokumen::STATUS_ARSIP)
+            ->whereHas('pekerjaan', function ($query) use ($deadlineAlertThreshold) {
+                $query->whereNotNull('tanggal_target_penyelesaian')
+                    ->whereDate('tanggal_target_penyelesaian', '<=', $deadlineAlertThreshold);
+            })
+            ->get()
+            ->sortBy(function ($dokumen) {
+                return optional(optional($dokumen->pekerjaan)->tanggal_target_penyelesaian)->timestamp ?? PHP_INT_MAX;
+            })
+            ->take(8)
+            ->values();
+
+        $hasCriticalDeadlineAlerts = $deadlineAlerts->contains(function ($dokumen) {
+            $pekerjaan = $dokumen->pekerjaan;
+
+            return $pekerjaan && $pekerjaan->hari_menuju_target !== null && $pekerjaan->hari_menuju_target <= 2;
+        });
 
         $recentActivities = ActivityLog::with('user')
             ->when(!$isAdmin, function ($query) {
@@ -72,6 +120,9 @@ class HomeController extends Controller
 
         return view('home', [
             'dashboardStats' => $dashboardStats,
+            'statusBoards' => $statusBoards,
+            'deadlineAlerts' => $deadlineAlerts,
+            'hasCriticalDeadlineAlerts' => $hasCriticalDeadlineAlerts,
             'canAccessAllFiles' => $canAccessAllFiles,
             'isAdmin' => $isAdmin,
             'recentActivities' => $recentActivities,

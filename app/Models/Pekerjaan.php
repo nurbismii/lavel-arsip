@@ -7,11 +7,79 @@ use Illuminate\Database\Eloquent\Model;
 class Pekerjaan extends Model
 {
     protected $table = 'pekerjaan';
-    protected $fillable = ['judul', 'parent_id', 'user_id', 'lokasi_id', 'team_id'];
+    protected $fillable = [
+        'judul',
+        'parent_id',
+        'user_id',
+        'lokasi_id',
+        'team_id',
+        'tanggal_mulai_penyelesaian',
+        'tanggal_target_penyelesaian',
+    ];
+
+    protected $casts = [
+        'tanggal_mulai_penyelesaian' => 'date',
+        'tanggal_target_penyelesaian' => 'date',
+    ];
 
     public function getTanggalDibuatAttribute(): string
     {
         return $this->created_at ? $this->created_at->format('d M Y H:i') : '-';
+    }
+
+    public function getRentangPenyelesaianAttribute(): string
+    {
+        if (!$this->tanggal_mulai_penyelesaian && !$this->tanggal_target_penyelesaian) {
+            return '-';
+        }
+
+        $mulai = $this->tanggal_mulai_penyelesaian
+            ? $this->tanggal_mulai_penyelesaian->format('d M Y')
+            : '-';
+
+        $target = $this->tanggal_target_penyelesaian
+            ? $this->tanggal_target_penyelesaian->format('d M Y')
+            : '-';
+
+        return $mulai . ' s/d ' . $target;
+    }
+
+    public function getTanggalTargetPenyelesaianLabelAttribute(): string
+    {
+        return $this->tanggal_target_penyelesaian
+            ? $this->tanggal_target_penyelesaian->format('d M Y')
+            : '-';
+    }
+
+    public function getHariMenujuTargetAttribute(): ?int
+    {
+        if (!$this->tanggal_target_penyelesaian) {
+            return null;
+        }
+
+        return now()->startOfDay()->diffInDays(
+            $this->tanggal_target_penyelesaian->copy()->startOfDay(),
+            false
+        );
+    }
+
+    public function getStatusTargetPenyelesaianAttribute(): string
+    {
+        $hari = $this->hari_menuju_target;
+
+        if ($hari === null) {
+            return 'Belum ada target';
+        }
+
+        if ($hari < 0) {
+            return 'Terlambat ' . abs($hari) . ' hari';
+        }
+
+        if ($hari === 0) {
+            return 'Jatuh tempo hari ini';
+        }
+
+        return 'H-' . $hari;
     }
 
     // dokumen

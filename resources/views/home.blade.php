@@ -29,6 +29,24 @@
         background-color: rgba(255, 193, 7, 0.18);
         color: #b78103;
     }
+
+    .deadline-card-warning {
+        background-color: #fff8e1;
+        border-color: #ffc107 !important;
+    }
+
+    .deadline-card-danger {
+        background-color: #fff1f2;
+        border-color: #dc3545 !important;
+    }
+
+    .deadline-status-warning {
+        color: #946200;
+    }
+
+    .deadline-status-danger {
+        color: #b02a37;
+    }
 </style>
 @endpush
 
@@ -40,6 +58,49 @@
         <h4 class="fw-bold mb-1">Dashboard</h4>
         <small class="text-muted">Selamat datang di Sistem Arsipin</small>
     </div>
+
+    @if($deadlineAlerts->count())
+    <div class="alert {{ $hasCriticalDeadlineAlerts ? 'alert-danger' : 'alert-warning' }} border-0 shadow-sm rounded-4 mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+            <div>
+                <h6 class="fw-semibold mb-1">Alert Penyelesaian Dokumen</h6>
+                <div class="small">
+                    H-3 ditandai kuning. Mulai H-2 sampai dokumen selesai ditandai merah.
+                </div>
+            </div>
+            <a href="{{ route('pekerjaan.index') }}" class="btn btn-sm btn-outline-dark align-self-lg-start">
+                Lihat Dokumen
+            </a>
+        </div>
+
+        <div class="row g-2 mt-2">
+            @foreach($deadlineAlerts as $doc)
+                @php($pekerjaan = $doc->pekerjaan)
+                @php($hariMenujuTarget = $pekerjaan ? $pekerjaan->hari_menuju_target : null)
+                @php($isCriticalDeadline = $hariMenujuTarget !== null && $hariMenujuTarget <= 2)
+                <div class="col-md-6">
+                    <div class="{{ $isCriticalDeadline ? 'deadline-card-danger' : 'deadline-card-warning' }} rounded-3 border p-3 h-100">
+                        <div class="d-flex justify-content-between gap-2">
+                            <a href="{{ route('dokumen.lihat', $doc->id) }}" target="_blank" class="fw-semibold text-decoration-none">
+                                {{ $doc->nama_file }}
+                            </a>
+                            <span class="badge {{ $doc->status_dokumen_badge_class }}">
+                                {{ $doc->status_dokumen_label }}
+                            </span>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            Folder : {{ optional($pekerjaan)->judul ?: '-' }}
+                        </small>
+                        <small class="d-block fw-semibold {{ $isCriticalDeadline ? 'deadline-status-danger' : 'deadline-status-warning' }}">
+                            Target : {{ optional($pekerjaan)->tanggal_target_penyelesaian_label ?: '-' }}
+                            ({{ optional($pekerjaan)->status_target_penyelesaian ?: '-' }})
+                        </small>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     {{-- QUICK ACCESS --}}
     <div class="mb-4">
@@ -88,43 +149,65 @@
         </div>
     </div>
 
-    {{-- DASHBOARD / STATISTIK --}}
+    {{-- PAPAN INFORMASI STATUS --}}
     <div class="mb-4">
-        <h6 class="fw-semibold mb-3 text-uppercase text-muted">Ringkasan Data</h6>
-
-        <div class="mb-3">
-            <small class="text-muted">
-                {{ $canAccessAllFiles ? 'Menampilkan total keseluruhan dokumen berdasarkan status.' : 'Menampilkan total dokumen yang dapat Anda akses berdasarkan jabatan dan tim.' }}
-            </small>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+            <div>
+                <h6 class="fw-semibold mb-1 text-uppercase text-muted">Papan Informasi Status Dokumen</h6>
+                <small class="text-muted">Pantau dokumen yang masih dalam proses, sedang digunakan, dan sudah selesai.</small>
+            </div>
+            <a href="{{ route('pekerjaan.index') }}" class="btn btn-sm btn-outline-primary">
+                Kelola Status
+            </a>
         </div>
 
         <div class="row g-3">
-            @foreach($dashboardStats as $stat)
-                <div class="col-md-4">
-                    <div class="card border-0 {{ $stat['card_class'] }} rounded-4">
-                        <div class="card-body d-flex align-items-center">
-                            <div class="me-3">
-                                <div class="dashboard-icon-box {{ $stat['icon_wrapper_class'] }} rounded-3">
-                                    @if($stat['icon'] === 'archive')
-                                        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                                            <path d="M1.5 3.5A1.5 1.5 0 0 1 3 2h10a1.5 1.5 0 0 1 1.5 1.5V5H1.5V3.5ZM1 6h14v6.5A1.5 1.5 0 0 1 13.5 14h-11A1.5 1.5 0 0 1 1 12.5V6Zm4.5 2a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5Z"/>
-                                        </svg>
-                                    @elseif($stat['icon'] === 'draft')
-                                        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-9.5 9.5L3 14l.646-3.354 9.5-9.5ZM11.207 2 4.5 8.707V10.5h1.793L13 3.793 11.207 2ZM1 13.5A1.5 1.5 0 0 0 2.5 15h11a.5.5 0 0 0 0-1h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 0-1 0v11Z"/>
-                                        </svg>
-                                    @elseif($stat['icon'] === 'active')
-                                        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                                            <path d="M8 1a7 7 0 1 0 4.95 11.95.5.5 0 1 0-.707-.707A6 6 0 1 1 14 8a.5.5 0 0 0 1 0A7 7 0 0 0 8 1Z"/>
-                                            <path d="M7.5 4.5a.5.5 0 0 1 1 0v3.793l2.354 2.353a.5.5 0 0 1-.708.708l-2.5-2.5A.5.5 0 0 1 7.5 8.5v-4Z"/>
-                                        </svg>
-                                    @endif
+            @foreach($statusBoards as $board)
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                <div>
+                                    <span class="badge {{ $board['badge_class'] }} mb-2">
+                                        {{ $board['label'] }}
+                                    </span>
+                                    <h5 class="fw-bold mb-0">{{ $board['total'] }} dokumen</h5>
                                 </div>
+                                <a href="{{ route('pekerjaan.index', ['status_dokumen' => $board['status']]) }}" class="btn btn-sm btn-outline-primary">
+                                    Lihat Semua
+                                </a>
                             </div>
-                            <div>
-                                <small class="text-muted">{{ $stat['label'] }}</small>
-                                <h4 class="fw-bold mb-0">{{ $stat['value'] }}</h4>
-                            </div>
+
+                            @if($board['documents']->count())
+                                @foreach($board['documents'] as $doc)
+                                    @php($pekerjaan = $doc->pekerjaan)
+                                    <div class="{{ $loop->last ? '' : 'border-bottom pb-2 mb-2' }}">
+                                        <a href="{{ route('dokumen.lihat', $doc->id) }}" target="_blank" class="fw-semibold text-decoration-none">
+                                            {{ $doc->nama_file }}
+                                        </a>
+                                        <small class="text-muted d-block">
+                                            Folder : {{ optional($pekerjaan)->judul ?: '-' }}
+                                        </small>
+                                        <small class="text-muted d-block">
+                                            Rentang : {{ optional($pekerjaan)->rentang_penyelesaian ?: '-' }}
+                                        </small>
+                                        @if($doc->status_dokumen === \App\Models\Dokumen::STATUS_AKTIF)
+                                            <small class="text-primary fw-semibold d-block">
+                                                Dipinjam oleh : {{ optional($doc->peminjam)->name ?: 'Belum dipilih' }}
+                                            </small>
+                                        @endif
+                                        @if($doc->status_dokumen === \App\Models\Dokumen::STATUS_ARSIP)
+                                            <small class="text-muted d-block">
+                                                Selesai : {{ $doc->tanggal_diselesaikan }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="alert alert-light border mb-0">
+                                    Belum ada dokumen pada status ini.
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

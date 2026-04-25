@@ -12,7 +12,23 @@ class Dokumen extends Model
     public const STATUS_ARSIP = 'arsip';
 
     protected $table = 'dokumen';
-    protected $fillable = ['pekerjaan_id', 'nama_file', 'path', 'status_dokumen'];
+    protected $fillable = [
+        'pekerjaan_id',
+        'nama_file',
+        'path',
+        'status_dokumen',
+        'peminjam_user_id',
+        'dipinjam_pada',
+        'bukti_penyelesaian_nama_file',
+        'bukti_penyelesaian_path',
+        'keterangan_penyelesaian',
+        'diselesaikan_pada',
+    ];
+
+    protected $casts = [
+        'dipinjam_pada' => 'datetime',
+        'diselesaikan_pada' => 'datetime',
+    ];
 
     public static function statusOptions(): array
     {
@@ -20,6 +36,14 @@ class Dokumen extends Model
             self::STATUS_DRAFT => 'Dalam proses',
             self::STATUS_AKTIF => 'Sedang Digunakan',
             self::STATUS_ARSIP => 'Sudah Selesai',
+        ];
+    }
+
+    public static function statusOptionsForInput(): array
+    {
+        return [
+            self::STATUS_DRAFT => static::statusOptions()[self::STATUS_DRAFT],
+            self::STATUS_AKTIF => static::statusOptions()[self::STATUS_AKTIF],
         ];
     }
 
@@ -55,11 +79,31 @@ class Dokumen extends Model
 
     public function getStorageDiskAttribute(): string
     {
-        if (!$this->path) {
+        return $this->resolveStorageDisk($this->path);
+    }
+
+    public function getBuktiPenyelesaianStorageDiskAttribute(): string
+    {
+        return $this->resolveStorageDisk($this->bukti_penyelesaian_path);
+    }
+
+    public function getTanggalDiselesaikanAttribute(): string
+    {
+        return $this->diselesaikan_pada ? $this->diselesaikan_pada->format('d M Y H:i') : '-';
+    }
+
+    public function getTanggalDipinjamAttribute(): string
+    {
+        return $this->dipinjam_pada ? $this->dipinjam_pada->format('d M Y H:i') : '-';
+    }
+
+    private function resolveStorageDisk(?string $path): string
+    {
+        if (!$path) {
             return 'local';
         }
 
-        if (Storage::disk('local')->exists($this->path)) {
+        if (Storage::disk('local')->exists($path)) {
             return 'local';
         }
 
@@ -67,7 +111,7 @@ class Dokumen extends Model
             return 'local';
         }
 
-        if (Storage::disk('r2')->exists($this->path)) {
+        if (Storage::disk('r2')->exists($path)) {
             return 'r2';
         }
 
@@ -91,5 +135,15 @@ class Dokumen extends Model
     public function pekerjaan()
     {
         return $this->belongsTo(Pekerjaan::class);
+    }
+
+    public function peminjam()
+    {
+        return $this->belongsTo(User::class, 'peminjam_user_id');
+    }
+
+    public function buktiPenyelesaians()
+    {
+        return $this->hasMany(DokumenBuktiPenyelesaian::class)->orderBy('id');
     }
 }

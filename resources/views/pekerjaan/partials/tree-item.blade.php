@@ -4,6 +4,11 @@
 @php($hasNestedContent = $childrenCount > 0 || $documentsCount > 0)
 @php($collapseId = 'folder-content-' . $item->id)
 @php($canManage = auth()->check() && (auth()->user()->canAccessAllFiles() || (int) $item->user_id === (int) auth()->id()))
+@php($statusDokumen = $statusDokumen ?? '')
+@php($treeContentParams = ['pekerjaan' => $item->id])
+@if($statusDokumen !== '')
+    @php($treeContentParams['status_dokumen'] = $statusDokumen)
+@endif
 
 <li class="tree-item" data-tree-item-id="{{ $item->id }}">
 
@@ -41,6 +46,10 @@
             <small class="text-muted d-block ms-4 ps-1 tree-meta">
                 Tim/divisi: {{ optional($item->team)->name ?: '-' }}
             </small>
+
+            <small class="text-muted d-block ms-4 ps-1 tree-meta">
+                Rentang penyelesaian: {{ $item->rentang_penyelesaian }}
+            </small>
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
@@ -73,7 +82,7 @@
         class="collapse tree-folder-collapse {{ $autoExpand ? 'show' : '' }}"
         data-tree-content
         data-tree-loaded="false"
-        data-tree-url="{{ route('pekerjaan.tree-content', $item->id) }}">
+        data-tree-url="{{ route('pekerjaan.tree-content', $treeContentParams) }}">
         <div class="tree-loading px-3 py-3 small text-muted d-none">
             Memuat isi folder...
         </div>

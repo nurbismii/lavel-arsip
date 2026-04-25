@@ -29,6 +29,8 @@ Route::middleware('check.login')->group(function () {
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/dokumen/{dokumen}/lihat', [PekerjaanController::class, 'lihatDokumen'])->name('dokumen.lihat');
+    Route::get('/dokumen/{dokumen}/bukti-penyelesaian/{buktiPenyelesaian}', [PekerjaanController::class, 'lihatBuktiPenyelesaian'])->name('dokumen.bukti-penyelesaian.file');
+    Route::get('/dokumen/{dokumen}/bukti-penyelesaian', [PekerjaanController::class, 'lihatBuktiPenyelesaian'])->name('dokumen.bukti-penyelesaian');
     Route::get('/pekerjaan/{pekerjaan}/tree-content', [PekerjaanController::class, 'treeContent'])->name('pekerjaan.tree-content');
     Route::delete('/pekerjaan/{pekerjaan}/dokumen/{dokumen}', [PekerjaanController::class, 'hapusDokumen'])->name('pekerjaan.dokumen.destroy');
     Route::patch('/pekerjaan/{pekerjaan}/dokumen/{dokumen}/status', [PekerjaanController::class, 'updateStatusDokumen'])->name('pekerjaan.dokumen.status');

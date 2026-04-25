@@ -153,13 +153,23 @@
     </div>
 
     <form method="GET" action="{{ route('pekerjaan.index') }}" class="row g-2 mb-4">
-        <div class="col-12 col-md-8 col-lg-12">
+        <div class="col-12 col-lg-7">
             <input
                 type="text"
                 name="search"
                 value="{{ $search }}"
                 class="form-control"
                 placeholder="Cari judul utama atau sub judul...">
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <select name="status_dokumen" class="form-control">
+                <option value="">Semua Status</option>
+                @foreach($statusDokumenOptions as $value => $label)
+                    <option value="{{ $value }}" {{ $statusDokumen === $value ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
         </div>
         <div class="col-6 col-md-auto">
             <button type="submit" class="btn btn-primary w-100">Cari</button>
@@ -169,10 +179,20 @@
         </div>
     </form>
 
-    @if($search !== '')
+    @if($search !== '' || $statusDokumen !== '')
     <div class="alert alert-light border small">
-        Hasil pencarian untuk <strong>{{ $search }}</strong>.
-        Jika yang cocok adalah sub pekerjaan, seluruh struktur parent dan child terkait tetap ditampilkan.
+        Filter aktif:
+        @if($search !== '')
+            kata kunci <strong>{{ $search }}</strong>
+        @endif
+        @if($search !== '' && $statusDokumen !== '')
+            dan
+        @endif
+        @if($statusDokumen !== '')
+            status <strong>{{ $statusDokumenOptions[$statusDokumen] ?? $statusDokumen }}</strong>
+        @endif
+        .
+        Folder yang tampil adalah struktur yang memiliki dokumen sesuai filter.
     </div>
     @endif
 
@@ -192,7 +212,7 @@
     </div>
 
     <div class="tree-wrapper">
-        @include('pekerjaan.tree', ['items' => $pekerjaans, 'isRoot' => true, 'autoExpand' => $search !== ''])
+        @include('pekerjaan.tree', ['items' => $pekerjaans, 'isRoot' => true, 'autoExpand' => $search !== '' || $statusDokumen !== '', 'statusDokumen' => $statusDokumen])
     </div>
 
     <div class="mt-4 d-flex justify-content-center">
@@ -212,6 +232,52 @@
     document.addEventListener('DOMContentLoaded', function() {
         const expandButton = document.getElementById('expand-all-tree');
         const collapseButton = document.getElementById('collapse-all-tree');
+
+        function syncCompletionFields(form) {
+            if (!form) {
+                return;
+            }
+
+            const select = form.querySelector('.document-status-select');
+            const loanFields = form.querySelector('.loan-fields');
+            const borrowerSelect = form.querySelector('.borrower-select');
+            const fields = form.querySelector('.completion-fields');
+            const proofInput = form.querySelector('.completion-proof-input');
+            const noteInput = form.querySelector('.completion-note-input');
+
+            if (!select || !fields) {
+                return;
+            }
+
+            const isComplete = select.value === select.dataset.completeStatus;
+            const isActive = select.value === select.dataset.activeStatus;
+
+            if (loanFields) {
+                loanFields.classList.toggle('d-none', !isActive);
+            }
+
+            if (borrowerSelect) {
+                borrowerSelect.required = isActive;
+            }
+
+            fields.classList.toggle('d-none', !isComplete);
+
+            if (proofInput) {
+                proofInput.required = isComplete && fields.dataset.hasProof !== 'true';
+            }
+
+            if (noteInput) {
+                noteInput.required = isComplete;
+            }
+        }
+
+        document.addEventListener('change', function(event) {
+            if (!event.target.classList.contains('document-status-select')) {
+                return;
+            }
+
+            syncCompletionFields(event.target.closest('.document-status-form'));
+        });
 
         if (typeof bootstrap === 'undefined') {
             return;
@@ -275,6 +341,7 @@
                 const result = await response.json();
                 collapseElement.innerHTML = result.html || '';
                 collapseElement.dataset.treeLoaded = 'true';
+                collapseElement.querySelectorAll('.document-status-form').forEach(syncCompletionFields);
             } catch (error) {
                 collapseElement.innerHTML = `
                     <div class="alert alert-warning small ms-3 mt-2 mb-0">
