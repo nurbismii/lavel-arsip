@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\AlurKerjaController;
+use App\Http\Controllers\AlurKerjaTahapController;
 use App\Http\Controllers\LokasiDokumenController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamController;
@@ -34,6 +36,12 @@ Route::middleware('check.login')->group(function () {
     Route::get('/pekerjaan/{pekerjaan}/tree-content', [PekerjaanController::class, 'treeContent'])->name('pekerjaan.tree-content');
     Route::delete('/pekerjaan/{pekerjaan}/dokumen/{dokumen}', [PekerjaanController::class, 'hapusDokumen'])->name('pekerjaan.dokumen.destroy');
     Route::patch('/pekerjaan/{pekerjaan}/dokumen/{dokumen}/status', [PekerjaanController::class, 'updateStatusDokumen'])->name('pekerjaan.dokumen.status');
+    Route::post('/alur-kerja/{alurKerja}/tahap', [AlurKerjaTahapController::class, 'store'])->name('alur-kerja.tahap.store');
+    Route::patch('/alur-kerja/{alurKerja}/tahap/{tahap}', [AlurKerjaTahapController::class, 'update'])->name('alur-kerja.tahap.update');
+    Route::delete('/alur-kerja/{alurKerja}/tahap/{tahap}', [AlurKerjaTahapController::class, 'destroy'])->name('alur-kerja.tahap.destroy');
+    Route::get('/alur-kerja/{alurKerja}/tahap/{tahap}/lampiran/{lampiran}', [AlurKerjaTahapController::class, 'showLampiran'])->name('alur-kerja.tahap.lampiran.show');
+    Route::delete('/alur-kerja/{alurKerja}/tahap/{tahap}/lampiran/{lampiran}', [AlurKerjaTahapController::class, 'destroyLampiran'])->name('alur-kerja.tahap.lampiran.destroy');
+    Route::resource('alur-kerja', AlurKerjaController::class);
     Route::resource('pekerjaan', PekerjaanController::class);
     Route::get('/lokasi-dokumen', [LokasiDokumenController::class, 'index'])->name('lokasi-dokumen.index');
     Route::get('/lokasi-dokumen/create', [LokasiDokumenController::class, 'create'])->name('lokasi-dokumen.create');

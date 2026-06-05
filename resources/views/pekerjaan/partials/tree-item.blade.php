@@ -48,6 +48,10 @@
             </small>
 
             <small class="text-muted d-block ms-4 ps-1 tree-meta">
+                Alur kerja: {{ optional($item->alurKerja)->nama ?: '-' }}
+            </small>
+
+            <small class="text-muted d-block ms-4 ps-1 tree-meta">
                 Rentang penyelesaian: {{ $item->rentang_penyelesaian }}
             </small>
         </div>

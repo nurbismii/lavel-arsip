@@ -13,6 +13,7 @@ class Pekerjaan extends Model
         'user_id',
         'lokasi_id',
         'team_id',
+        'alur_kerja_id',
         'tanggal_mulai_penyelesaian',
         'tanggal_target_penyelesaian',
     ];
@@ -96,6 +97,11 @@ class Pekerjaan extends Model
     public function team()
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function alurKerja()
+    {
+        return $this->belongsTo(AlurKerja::class, 'alur_kerja_id');
     }
 
     public function user()

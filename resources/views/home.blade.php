@@ -56,7 +56,64 @@
     {{-- Header --}}
     <div class="mb-4">
         <h4 class="fw-bold mb-1">Dashboard</h4>
-        <small class="text-muted">Selamat datang di Sistem Arsipin</small>
+        <small class="text-muted">Selamat datang di V-Ops</small>
+    </div>
+
+    <div class="mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+            <div>
+                <h6 class="fw-semibold mb-1 text-uppercase text-muted">Fondasi V-Ops</h6>
+                <small class="text-muted">Ringkasan alur kerja, risiko, kesiapan dokumentasi, dan cadangan operasional.</small>
+            </div>
+            <a href="{{ route('alur-kerja.index') }}" class="btn btn-sm btn-outline-primary">
+                Buka Registri
+            </a>
+        </div>
+
+        <div class="row g-3">
+            @foreach($opsStats as $stat)
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body">
+                            <span class="badge {{ $stat['class'] }} mb-2">{{ $stat['label'] }}</span>
+                            <h4 class="fw-bold mb-0">{{ $stat['value'] }}</h4>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        @if($opsAttentionItems->count())
+            <div class="card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                        <h6 class="fw-semibold mb-0">Alur Kerja Perlu Perhatian</h6>
+                        <a href="{{ route('alur-kerja.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                    </div>
+                    <div class="row g-2">
+                        @foreach($opsAttentionItems as $alurKerja)
+                            <div class="col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                        <span class="badge {{ $alurKerja->risiko_badge_class }}">{{ $alurKerja->risiko_label }}</span>
+                                        <span class="badge {{ $alurKerja->status_dokumentasi_badge_class }}">{{ $alurKerja->status_dokumentasi_label }}</span>
+                                    </div>
+                                    <a href="{{ route('alur-kerja.show', $alurKerja->id) }}" class="fw-semibold text-decoration-none">
+                                        {{ $alurKerja->nama }}
+                                    </a>
+                                    <small class="text-muted d-block">
+                                        Unit: {{ optional($alurKerja->team)->name ?: '-' }}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        Cadangan: {{ optional($alurKerja->pemilikCadangan)->name ?: 'Belum ditetapkan' }}
+                                    </small>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     @if($deadlineAlerts->count())
@@ -272,7 +329,7 @@
                     <h6 class="fw-semibold mb-3">Informasi</h6>
 
                     <div class="alert alert-light border rounded-3 mb-2">
-                        Sistem Arsipin digunakan untuk mengelola dokumen secara digital.
+                        V-Ops digunakan untuk menjaga keberlanjutan pekerjaan melalui alur kerja, dokumen operasional, dan catatan tanggung jawab.
                     </div>
 
                     <div class="alert alert-light border rounded-3 mb-0">

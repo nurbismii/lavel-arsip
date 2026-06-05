@@ -69,6 +69,21 @@
             @endif
         </div>
 
+        <div class="mb-3">
+            <label>Alur Kerja V-Ops</label>
+            <select name="alur_kerja_id" class="form-control">
+                <option value="">-- Tidak ditautkan --</option>
+                @foreach($alurKerjas as $alurKerja)
+                    <option value="{{ $alurKerja->id }}" {{ old('alur_kerja_id') == $alurKerja->id ? 'selected' : '' }}>
+                        {{ $alurKerja->kode ? $alurKerja->kode . ' - ' : '' }}{{ $alurKerja->nama }}
+                    </option>
+                @endforeach
+            </select>
+            <small class="text-muted">
+                Jika memilih parent, alur kerja akan mengikuti parent tersebut saat disimpan.
+            </small>
+        </div>
+
         <div class="row g-3 mb-3">
             <div class="col-md-6">
                 <label>Mulai Penyelesaian</label>

@@ -10,8 +10,11 @@
 
                     {{-- Header --}}
                     <div class="text-center mb-4">
-                        <h4 class="fw-bold text-primary mb-1">ARSIPIN</h4>
-                        <small class="text-muted">Buat akun baru</small>
+                        @include('_partials.brand-logo', [
+                            'size' => 'lg',
+                            'subtitle' => 'Buat akun V-Ops',
+                            'align' => 'center',
+                        ])
                     </div>
 
                     {{-- Form --}}
@@ -106,7 +109,7 @@
             {{-- Footer --}}
             <div class="text-center mt-3">
                 <small class="text-muted">
-                    © {{ date('Y') }} Arsipin
+                    &copy; {{ date('Y') }} V-Ops
                 </small>
             </div>
 

@@ -30,7 +30,7 @@ class ActivityLogService
             return null;
         }
 
-        foreach (['judul', 'nama_lokasi', 'nama_file', 'name', 'email'] as $attribute) {
+        foreach (['judul', 'nama', 'nama_lokasi', 'nama_file', 'name', 'email'] as $attribute) {
             $value = data_get($subject, $attribute);
 
             if (filled($value)) {

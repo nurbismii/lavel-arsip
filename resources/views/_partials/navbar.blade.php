@@ -3,15 +3,7 @@
 
         {{-- Brand aplikasi --}}
         <a class="navbar-brand d-flex align-items-center gap-3 me-0" href="{{ auth()->check() ? route('home') : url('/') }}">
-            <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary text-white fw-bold shadow-sm"
-                style="width: 44px; height: 44px;">
-                A
-            </span>
-            <span class="d-flex flex-column lh-sm">
-                <span class="text-muted text-dark fs-5">
-                    V-Arsip
-                </span>
-            </span>
+            @include('_partials.brand-logo', ['size' => 'md'])
         </a>
 
         {{-- Toggle Mobile --}}
@@ -35,9 +27,16 @@
                     </li>
 
                     <li class="nav-item">
+                        <a class="nav-link px-3 py-2 rounded-pill {{ request()->is('alur-kerja*') ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
+                            href="{{ route('alur-kerja.index') }}">
+                            Alur Kerja
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
                         <a class="nav-link px-3 py-2 rounded-pill {{ request()->is('pekerjaan*') ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
                             href="{{ route('pekerjaan.index') }}">
-                            Dokumen
+                            Dokumen Operasional
                         </a>
                     </li>
 

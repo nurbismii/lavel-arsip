@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
+use App\Models\AlurKerja;
 use App\Models\Dokumen;
 
 class HomeController extends Controller
@@ -32,6 +33,48 @@ class HomeController extends Controller
             ->whereHas('pekerjaan', function ($query) use ($user) {
                 $query->visibleTo($user);
             });
+
+        $alurKerjaQuery = AlurKerja::query()->visibleTo($user);
+
+        $opsStats = [
+            [
+                'label' => 'Total Alur Kerja',
+                'value' => (clone $alurKerjaQuery)->count(),
+                'class' => 'bg-primary',
+            ],
+            [
+                'label' => 'Risiko Tinggi/Kritis',
+                'value' => (clone $alurKerjaQuery)
+                    ->whereIn('risiko', [AlurKerja::RISIKO_TINGGI, AlurKerja::RISIKO_KRITIS])
+                    ->count(),
+                'class' => 'bg-danger',
+            ],
+            [
+                'label' => 'Dokumentasi Belum Siap',
+                'value' => (clone $alurKerjaQuery)
+                    ->whereIn('status_dokumentasi', [AlurKerja::DOKUMENTASI_BELUM_LENGKAP, AlurKerja::DOKUMENTASI_PERLU_UPDATE])
+                    ->count(),
+                'class' => 'bg-warning text-dark',
+            ],
+            [
+                'label' => 'Tanpa Cadangan',
+                'value' => (clone $alurKerjaQuery)
+                    ->whereNull('pemilik_cadangan_user_id')
+                    ->count(),
+                'class' => 'bg-dark',
+            ],
+        ];
+
+        $opsAttentionItems = (clone $alurKerjaQuery)
+            ->with(['team', 'pemilikUtama', 'pemilikCadangan'])
+            ->where(function ($query) {
+                $query->whereIn('risiko', [AlurKerja::RISIKO_TINGGI, AlurKerja::RISIKO_KRITIS])
+                    ->orWhereIn('status_dokumentasi', [AlurKerja::DOKUMENTASI_BELUM_LENGKAP, AlurKerja::DOKUMENTASI_PERLU_UPDATE])
+                    ->orWhereNull('pemilik_cadangan_user_id');
+            })
+            ->latest()
+            ->limit(5)
+            ->get();
 
         $statusTotals = (clone $dokumenQuery)
             ->selectRaw('status_dokumen, COUNT(*) as total')
@@ -120,6 +163,8 @@ class HomeController extends Controller
 
         return view('home', [
             'dashboardStats' => $dashboardStats,
+            'opsStats' => $opsStats,
+            'opsAttentionItems' => $opsAttentionItems,
             'statusBoards' => $statusBoards,
             'deadlineAlerts' => $deadlineAlerts,
             'hasCriticalDeadlineAlerts' => $hasCriticalDeadlineAlerts,

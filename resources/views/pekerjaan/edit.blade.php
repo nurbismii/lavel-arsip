@@ -77,6 +77,21 @@
             @endif
         </div>
 
+        <div class="mb-3">
+            <label>Alur Kerja V-Ops</label>
+            <select name="alur_kerja_id" class="form-control">
+                <option value="">-- Tidak ditautkan --</option>
+                @foreach($alurKerjas as $alurKerja)
+                <option value="{{ $alurKerja->id }}" {{ old('alur_kerja_id', $pekerjaan->alur_kerja_id) == $alurKerja->id ? 'selected' : '' }}>
+                    {{ $alurKerja->kode ? $alurKerja->kode . ' - ' : '' }}{{ $alurKerja->nama }}
+                </option>
+                @endforeach
+            </select>
+            <small class="text-muted">
+                Jika memilih parent, alur kerja akan mengikuti parent tersebut saat disimpan.
+            </small>
+        </div>
+
         <div class="row g-3 mb-3">
             <div class="col-md-6">
                 <label>Mulai Penyelesaian</label>
@@ -127,35 +142,35 @@
 
         <h6>Dokumen Saat Ini</h6>
 
-    @if($pekerjaan->dokumens->count())
-    <ul class="list-unstyled mb-0">
-        @foreach($pekerjaan->dokumens as $doc)
-        <li class="mb-3 border rounded p-3">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
-                <div>
+        @if($pekerjaan->dokumens->count())
+        <ul class="list-unstyled mb-0">
+            @foreach($pekerjaan->dokumens as $doc)
+            <li class="mb-3 border rounded p-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
                     <div>
-                        📄 <a href="{{ route('dokumen.lihat', $doc->id) }}" target="_blank" class="text-decoration-none">{{ $doc->nama_file }}</a>
-                        <span class="badge {{ $doc->status_dokumen_badge_class }} ms-2">{{ $doc->status_dokumen_label }}</span>
+                        <div>
+                            📄 <a href="{{ route('dokumen.lihat', $doc->id) }}" target="_blank" class="text-decoration-none">{{ $doc->nama_file }}</a>
+                            <span class="badge {{ $doc->status_dokumen_badge_class }} ms-2">{{ $doc->status_dokumen_label }}</span>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            Disimpan: {{ $doc->tanggal_disimpan }} | Ukuran: {{ $doc->ukuran_file }}
+                        </small>
                     </div>
-                    <small class="text-muted d-block mt-1">
-                        Disimpan: {{ $doc->tanggal_disimpan }} | Ukuran: {{ $doc->ukuran_file }}
-                    </small>
-                </div>
 
-                <button type="submit"
-                    form="delete-dokumen-{{ $doc->id }}"
-                    class="btn btn-sm btn-outline-danger">
-                    Hapus File
-                </button>
-            </div>
-        </li>
-        @endforeach
-    </ul>
-    @else
-    <div class="alert alert-light border mb-0">
-        Belum ada dokumen pada pekerjaan ini.
-    </div>
-    @endif
+                    <button type="submit"
+                        form="delete-dokumen-{{ $doc->id }}"
+                        class="btn btn-sm btn-outline-danger">
+                        Hapus File
+                    </button>
+                </div>
+            </li>
+            @endforeach
+        </ul>
+        @else
+        <div class="alert alert-light border mb-0">
+            Belum ada dokumen pada pekerjaan ini.
+        </div>
+        @endif
 
         <div class="mt-4">
             <button class="btn btn-primary">Update</button>

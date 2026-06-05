@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pekerjaan;
+use App\Models\AlurKerja;
 use App\Models\Dokumen;
 use App\Models\DokumenBuktiPenyelesaian;
 use App\Models\Lokasi;
@@ -118,7 +119,7 @@ class PekerjaanController extends Controller
             ? $this->findRelatedPekerjaanIdsByStatus($statusDokumen)
             : [];
 
-        $query = Pekerjaan::with(['lokasi', 'team'])
+        $query = Pekerjaan::with(['lokasi', 'team', 'alurKerja'])
             ->withCount([
                 'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                     $this->applyVisiblePekerjaanScope($query);
@@ -184,6 +185,7 @@ class PekerjaanController extends Controller
         $pekerjaan->load([
             'lokasi',
             'team',
+            'alurKerja',
             'dokumens' => function ($query) use ($statusDokumen) {
                 if ($statusDokumen !== '') {
                     $query->where('status_dokumen', $statusDokumen);
@@ -202,7 +204,7 @@ class PekerjaanController extends Controller
                     }
                 }
 
-                $query->with(['lokasi', 'team'])
+                $query->with(['lokasi', 'team', 'alurKerja'])
                     ->withCount([
                         'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                             $this->applyVisiblePekerjaanScope($query);
@@ -243,9 +245,10 @@ class PekerjaanController extends Controller
             ->get();
         $lokasis = Lokasi::orderBy('nama_lokasi')->get();
         $teams = $this->availableTeamsForCurrentUser();
+        $alurKerjas = $this->availableAlurKerjasForCurrentUser();
         $statusDokumenOptions = Dokumen::statusOptionsForInput();
 
-        return view('pekerjaan.create', compact('parents', 'lokasis', 'teams', 'statusDokumenOptions'));
+        return view('pekerjaan.create', compact('parents', 'lokasis', 'teams', 'alurKerjas', 'statusDokumenOptions'));
     }
 
     public function store(Request $request)
@@ -255,6 +258,7 @@ class PekerjaanController extends Controller
             'parent_id' => ['nullable', 'integer', 'exists:pekerjaan,id'],
             'lokasi_id' => ['required', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
+            'alur_kerja_id' => ['nullable', 'integer', 'exists:alur_kerja,id'],
             'tanggal_mulai_penyelesaian' => ['required', 'date'],
             'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
@@ -290,12 +294,17 @@ class PekerjaanController extends Controller
             ? $parent->team_id
             : $this->resolveAllowedTeamId($data['team_id'] ?? null);
 
+        $alurKerjaId = $parent
+            ? $parent->alur_kerja_id
+            : $this->resolveAllowedAlurKerjaId($data['alur_kerja_id'] ?? null);
+
         $pekerjaan = Pekerjaan::create([
             'judul' => $data['judul'],
             'parent_id' => $data['parent_id'] ?? null,
             'user_id' => auth()->id(),
             'lokasi_id' => $data['lokasi_id'] ?? null,
             'team_id' => $teamId,
+            'alur_kerja_id' => $alurKerjaId,
             'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
             'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
         ]);
@@ -320,6 +329,7 @@ class PekerjaanController extends Controller
                     'user_id' => auth()->id(),
                     'lokasi_id' => $data['lokasi_id'] ?? null,
                     'team_id' => $teamId,
+                    'alur_kerja_id' => $alurKerjaId,
                     'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
                     'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
                 ]);
@@ -343,7 +353,7 @@ class PekerjaanController extends Controller
 
     public function edit($id)
     {
-        $pekerjaan = Pekerjaan::with(['dokumens', 'lokasi', 'team'])->findOrFail($id);
+        $pekerjaan = Pekerjaan::with(['dokumens', 'lokasi', 'team', 'alurKerja'])->findOrFail($id);
         $this->pastikanPekerjaanBisaDiatur($pekerjaan);
 
         $parents = Pekerjaan::query()
@@ -354,9 +364,10 @@ class PekerjaanController extends Controller
             ->get();
         $lokasis = Lokasi::orderBy('nama_lokasi')->get();
         $teams = $this->availableTeamsForCurrentUser();
+        $alurKerjas = $this->availableAlurKerjasForCurrentUser();
         $statusDokumenOptions = Dokumen::statusOptionsForInput();
 
-        return view('pekerjaan.edit', compact('pekerjaan', 'parents', 'lokasis', 'teams', 'statusDokumenOptions'));
+        return view('pekerjaan.edit', compact('pekerjaan', 'parents', 'lokasis', 'teams', 'alurKerjas', 'statusDokumenOptions'));
     }
 
     public function update(Request $request, $id)
@@ -369,6 +380,7 @@ class PekerjaanController extends Controller
             'parent_id' => ['nullable', 'integer', 'exists:pekerjaan,id', Rule::notIn([$pekerjaan->id])],
             'lokasi_id' => ['nullable', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
+            'alur_kerja_id' => ['nullable', 'integer', 'exists:alur_kerja,id'],
             'tanggal_mulai_penyelesaian' => ['required', 'date'],
             'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
@@ -397,11 +409,16 @@ class PekerjaanController extends Controller
             ? $parent->team_id
             : $this->resolveAllowedTeamId($data['team_id'] ?? null);
 
+        $alurKerjaId = $parent
+            ? $parent->alur_kerja_id
+            : $this->resolveAllowedAlurKerjaId($data['alur_kerja_id'] ?? null);
+
         $pekerjaan->update([
             'judul' => $data['judul'],
             'parent_id' => $data['parent_id'] ?? null,
             'lokasi_id' => $data['lokasi_id'] ?? null,
             'team_id' => $teamId,
+            'alur_kerja_id' => $alurKerjaId,
             'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
             'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
         ]);
@@ -757,6 +774,14 @@ class PekerjaanController extends Controller
             ->get(['id', 'name', 'email']);
     }
 
+    private function availableAlurKerjasForCurrentUser()
+    {
+        return AlurKerja::query()
+            ->visibleTo(auth()->user())
+            ->orderBy('nama')
+            ->get(['id', 'kode', 'nama', 'team_id']);
+    }
+
     private function resolveAllowedTeamId($teamId): ?int
     {
         if (!$teamId) {
@@ -777,6 +802,23 @@ class PekerjaanController extends Controller
         );
 
         return $teamId;
+    }
+
+    private function resolveAllowedAlurKerjaId($alurKerjaId): ?int
+    {
+        if (!$alurKerjaId) {
+            return null;
+        }
+
+        $alurKerjaId = (int) $alurKerjaId;
+
+        abort_unless(
+            AlurKerja::query()->visibleTo(auth()->user())->whereKey($alurKerjaId)->exists(),
+            403,
+            'Anda tidak memiliki izin memakai alur kerja ini.'
+        );
+
+        return $alurKerjaId;
     }
 
     private function simpanDokumen(Pekerjaan $pekerjaan, $files, string $statusDokumen = Dokumen::STATUS_DRAFT): void
