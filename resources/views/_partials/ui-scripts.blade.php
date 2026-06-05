@@ -1,5 +1,69 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    (function initInteractiveBackground() {
+        const background = document.querySelector('.app-bg-curve');
+
+        if (!background || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+
+        const root = document.documentElement;
+        let frame = null;
+        let targetX = 0;
+        let targetY = 0;
+        let targetScrollY = 0;
+        let currentX = 0;
+        let currentY = 0;
+        let currentScrollY = 0;
+
+        function render() {
+            currentX += (targetX - currentX) * 0.14;
+            currentY += (targetY - currentY) * 0.14;
+            currentScrollY += (targetScrollY - currentScrollY) * 0.14;
+
+            root.style.setProperty('--bg-curve-x', currentX.toFixed(2) + 'px');
+            root.style.setProperty('--bg-curve-y', currentY.toFixed(2) + 'px');
+            root.style.setProperty('--bg-curve-x-reverse', (-currentX).toFixed(2) + 'px');
+            root.style.setProperty('--bg-curve-y-reverse', (-currentY).toFixed(2) + 'px');
+            root.style.setProperty('--bg-curve-scroll-y', currentScrollY.toFixed(2) + 'px');
+
+            if (
+                Math.abs(targetX - currentX) > 0.1
+                || Math.abs(targetY - currentY) > 0.1
+                || Math.abs(targetScrollY - currentScrollY) > 0.1
+            ) {
+                frame = requestAnimationFrame(render);
+                return;
+            }
+
+            frame = null;
+        }
+
+        function requestRender() {
+            if (!frame) {
+                frame = requestAnimationFrame(render);
+            }
+        }
+
+        function updateScrollOffset() {
+            targetScrollY = Math.min(window.scrollY, 640) * -0.05;
+            requestRender();
+        }
+
+        window.addEventListener('pointermove', function (event) {
+            if (event.pointerType === 'touch') {
+                return;
+            }
+
+            targetX = ((event.clientX / window.innerWidth) - 0.5) * 34;
+            targetY = ((event.clientY / window.innerHeight) - 0.5) * 24;
+            requestRender();
+        }, { passive: true });
+
+        window.addEventListener('scroll', updateScrollOffset, { passive: true });
+        updateScrollOffset();
+    })();
+
     function setButtonLoading(button, text) {
         if (!button || button.disabled) {
             return;

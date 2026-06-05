@@ -26,7 +26,9 @@
     @stack('styles')
 </head>
 
-<body>
+<body class="app-shell">
+    @include('_partials.bg-curve')
+
     <div id="app">
 
         @include('_partials.navbar')

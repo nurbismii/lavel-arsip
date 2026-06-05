@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
 @section('content')
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center auth-page-surface">
     <div class="row w-100 justify-content-center">
         <div class="col-md-4 col-lg-3">
 
@@ -24,7 +24,7 @@
                     @endif
 
                     {{-- Form --}}
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" action="{{ route('login') }}" data-loading-form>
                         @csrf
 
                         {{-- Email --}}
@@ -77,7 +77,7 @@
 
                         {{-- Button --}}
                         <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary rounded-3">
+                            <button type="submit" class="btn btn-primary rounded-3" data-loading-text="Memeriksa akses...">
                                 Masuk
                             </button>
                         </div>

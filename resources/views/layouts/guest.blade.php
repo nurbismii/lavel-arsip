@@ -18,13 +18,23 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<body class="app-shell app-shell--guest">
+    @include('_partials.bg-curve')
 
-    <main>
+    <main class="app-guest-main">
         @yield('content')
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        window.appFlash = {
+            success: @json(session('success')),
+            error: @json(session('error')),
+        };
+    </script>
+    @include('_partials.ui-scripts')
+    @stack('scripts')
 </body>
 
 </html>

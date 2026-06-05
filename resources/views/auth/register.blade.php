@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
 @section('content')
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center auth-page-surface">
     <div class="row w-100 justify-content-center">
         <div class="col-md-4 col-lg-3">
 
@@ -18,7 +18,7 @@
                     </div>
 
                     {{-- Form --}}
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" action="{{ route('register') }}" data-loading-form>
                         @csrf
 
                         {{-- Name --}}
@@ -87,7 +87,7 @@
 
                         {{-- Button --}}
                         <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary rounded-3">
+                            <button type="submit" class="btn btn-primary rounded-3" data-loading-text="Membuat akun...">
                                 Daftar
                             </button>
                         </div>

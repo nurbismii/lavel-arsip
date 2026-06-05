@@ -1,21 +1,22 @@
 <style>
     .workflow-link-card {
-        border: 1px solid #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, .72);
         border-radius: 16px;
-        background: #f8fafc;
+        background: var(--neu-surface-soft);
         padding: 1rem;
         transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+        box-shadow: var(--neu-shadow-inset);
     }
 
     .workflow-link-card.is-active {
         border-color: #bfdbfe;
-        background: #ffffff;
-        box-shadow: 0 12px 30px rgba(37, 99, 235, .08);
+        background: var(--neu-surface);
+        box-shadow: var(--neu-shadow-sm);
     }
 
     .workflow-link-card.is-inherited {
         border-color: #cbd5e1;
-        background: #f8fafc;
+        background: var(--neu-surface-soft);
     }
 
     .workflow-link-header {
@@ -38,7 +39,7 @@
     }
 
     .workflow-link-fields {
-        border-top: 1px solid #e2e8f0;
+        border-top: 1px solid rgba(148, 163, 184, .22);
         margin-top: 1rem;
         padding-top: 1rem;
     }
