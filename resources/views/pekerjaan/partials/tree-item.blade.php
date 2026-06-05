@@ -52,6 +52,15 @@
             </small>
 
             <small class="text-muted d-block ms-4 ps-1 tree-meta">
+                Tahapan proses:
+                @if($item->alurKerjaTahap)
+                    Tahap {{ $item->alurKerjaTahap->urutan }} - {{ $item->alurKerjaTahap->nama }}
+                @else
+                    -
+                @endif
+            </small>
+
+            <small class="text-muted d-block ms-4 ps-1 tree-meta">
                 Rentang penyelesaian: {{ $item->rentang_penyelesaian }}
             </small>
         </div>

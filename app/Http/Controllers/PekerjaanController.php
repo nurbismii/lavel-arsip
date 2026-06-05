@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pekerjaan;
 use App\Models\AlurKerja;
+use App\Models\AlurKerjaTahap;
 use App\Models\Dokumen;
 use App\Models\DokumenBuktiPenyelesaian;
 use App\Models\Lokasi;
@@ -13,6 +14,7 @@ use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 class PekerjaanController extends Controller
@@ -119,7 +121,7 @@ class PekerjaanController extends Controller
             ? $this->findRelatedPekerjaanIdsByStatus($statusDokumen)
             : [];
 
-        $query = Pekerjaan::with(['lokasi', 'team', 'alurKerja'])
+        $query = Pekerjaan::with(['lokasi', 'team', 'alurKerja', 'alurKerjaTahap'])
             ->withCount([
                 'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                     $this->applyVisiblePekerjaanScope($query);
@@ -186,6 +188,7 @@ class PekerjaanController extends Controller
             'lokasi',
             'team',
             'alurKerja',
+            'alurKerjaTahap',
             'dokumens' => function ($query) use ($statusDokumen) {
                 if ($statusDokumen !== '') {
                     $query->where('status_dokumen', $statusDokumen);
@@ -204,7 +207,7 @@ class PekerjaanController extends Controller
                     }
                 }
 
-                $query->with(['lokasi', 'team', 'alurKerja'])
+                $query->with(['lokasi', 'team', 'alurKerja', 'alurKerjaTahap'])
                     ->withCount([
                         'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                             $this->applyVisiblePekerjaanScope($query);
@@ -240,7 +243,7 @@ class PekerjaanController extends Controller
     {
         $parents = Pekerjaan::query()
             ->manageableBy(auth()->user())
-            ->with('team')
+            ->with(['team', 'alurKerja', 'alurKerjaTahap'])
             ->orderBy('judul')
             ->get();
         $lokasis = Lokasi::orderBy('nama_lokasi')->get();
@@ -259,6 +262,7 @@ class PekerjaanController extends Controller
             'lokasi_id' => ['required', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'alur_kerja_id' => ['nullable', 'integer', 'exists:alur_kerja,id'],
+            'alur_kerja_tahap_id' => ['nullable', 'integer', 'exists:alur_kerja_tahap,id'],
             'tanggal_mulai_penyelesaian' => ['required', 'date'],
             'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
@@ -298,6 +302,10 @@ class PekerjaanController extends Controller
             ? $parent->alur_kerja_id
             : $this->resolveAllowedAlurKerjaId($data['alur_kerja_id'] ?? null);
 
+        $alurKerjaTahapId = $parent
+            ? $parent->alur_kerja_tahap_id
+            : $this->resolveAllowedAlurKerjaTahapId($data['alur_kerja_tahap_id'] ?? null, $alurKerjaId);
+
         $pekerjaan = Pekerjaan::create([
             'judul' => $data['judul'],
             'parent_id' => $data['parent_id'] ?? null,
@@ -305,6 +313,7 @@ class PekerjaanController extends Controller
             'lokasi_id' => $data['lokasi_id'] ?? null,
             'team_id' => $teamId,
             'alur_kerja_id' => $alurKerjaId,
+            'alur_kerja_tahap_id' => $alurKerjaTahapId,
             'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
             'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
         ]);
@@ -330,6 +339,7 @@ class PekerjaanController extends Controller
                     'lokasi_id' => $data['lokasi_id'] ?? null,
                     'team_id' => $teamId,
                     'alur_kerja_id' => $alurKerjaId,
+                    'alur_kerja_tahap_id' => $alurKerjaTahapId,
                     'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
                     'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
                 ]);
@@ -353,13 +363,13 @@ class PekerjaanController extends Controller
 
     public function edit($id)
     {
-        $pekerjaan = Pekerjaan::with(['dokumens', 'lokasi', 'team', 'alurKerja'])->findOrFail($id);
+        $pekerjaan = Pekerjaan::with(['dokumens', 'lokasi', 'team', 'alurKerja', 'alurKerjaTahap'])->findOrFail($id);
         $this->pastikanPekerjaanBisaDiatur($pekerjaan);
 
         $parents = Pekerjaan::query()
             ->manageableBy(auth()->user())
             ->where('id', '!=', $id)
-            ->with('team')
+            ->with(['team', 'alurKerja', 'alurKerjaTahap'])
             ->orderBy('judul')
             ->get();
         $lokasis = Lokasi::orderBy('nama_lokasi')->get();
@@ -381,6 +391,7 @@ class PekerjaanController extends Controller
             'lokasi_id' => ['nullable', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'alur_kerja_id' => ['nullable', 'integer', 'exists:alur_kerja,id'],
+            'alur_kerja_tahap_id' => ['nullable', 'integer', 'exists:alur_kerja_tahap,id'],
             'tanggal_mulai_penyelesaian' => ['required', 'date'],
             'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
@@ -413,12 +424,17 @@ class PekerjaanController extends Controller
             ? $parent->alur_kerja_id
             : $this->resolveAllowedAlurKerjaId($data['alur_kerja_id'] ?? null);
 
+        $alurKerjaTahapId = $parent
+            ? $parent->alur_kerja_tahap_id
+            : $this->resolveAllowedAlurKerjaTahapId($data['alur_kerja_tahap_id'] ?? null, $alurKerjaId);
+
         $pekerjaan->update([
             'judul' => $data['judul'],
             'parent_id' => $data['parent_id'] ?? null,
             'lokasi_id' => $data['lokasi_id'] ?? null,
             'team_id' => $teamId,
             'alur_kerja_id' => $alurKerjaId,
+            'alur_kerja_tahap_id' => $alurKerjaTahapId,
             'tanggal_mulai_penyelesaian' => $data['tanggal_mulai_penyelesaian'],
             'tanggal_target_penyelesaian' => $data['tanggal_target_penyelesaian'],
         ]);
@@ -778,6 +794,11 @@ class PekerjaanController extends Controller
     {
         return AlurKerja::query()
             ->visibleTo(auth()->user())
+            ->with(['tahaps' => function ($query) {
+                $query->select('id', 'alur_kerja_id', 'urutan', 'nama')
+                    ->orderBy('urutan')
+                    ->orderBy('id');
+            }])
             ->orderBy('nama')
             ->get(['id', 'kode', 'nama', 'team_id']);
     }
@@ -819,6 +840,37 @@ class PekerjaanController extends Controller
         );
 
         return $alurKerjaId;
+    }
+
+    private function resolveAllowedAlurKerjaTahapId($alurKerjaTahapId, ?int $alurKerjaId): ?int
+    {
+        if (!$alurKerjaTahapId) {
+            return null;
+        }
+
+        if (!$alurKerjaId) {
+            throw ValidationException::withMessages([
+                'alur_kerja_tahap_id' => 'Pilih alur kerja terlebih dahulu sebelum memilih tahapan proses.',
+            ]);
+        }
+
+        $alurKerjaTahapId = (int) $alurKerjaTahapId;
+
+        $tahapAda = AlurKerjaTahap::query()
+            ->whereKey($alurKerjaTahapId)
+            ->where('alur_kerja_id', $alurKerjaId)
+            ->whereHas('alurKerja', function ($query) {
+                $query->visibleTo(auth()->user());
+            })
+            ->exists();
+
+        if (!$tahapAda) {
+            throw ValidationException::withMessages([
+                'alur_kerja_tahap_id' => 'Tahapan proses yang dipilih tidak sesuai dengan alur kerja.',
+            ]);
+        }
+
+        return $alurKerjaTahapId;
     }
 
     private function simpanDokumen(Pekerjaan $pekerjaan, $files, string $statusDokumen = Dokumen::STATUS_DRAFT): void

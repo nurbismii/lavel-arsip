@@ -14,6 +14,7 @@ class Pekerjaan extends Model
         'lokasi_id',
         'team_id',
         'alur_kerja_id',
+        'alur_kerja_tahap_id',
         'tanggal_mulai_penyelesaian',
         'tanggal_target_penyelesaian',
     ];
@@ -104,6 +105,11 @@ class Pekerjaan extends Model
         return $this->belongsTo(AlurKerja::class, 'alur_kerja_id');
     }
 
+    public function alurKerjaTahap()
+    {
+        return $this->belongsTo(AlurKerjaTahap::class, 'alur_kerja_tahap_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -124,7 +130,7 @@ class Pekerjaan extends Model
     // recursive (ini yang kamu belum punya)
     public function childrenRecursive()
     {
-        return $this->subPekerjaans()->with('childrenRecursive', 'dokumens', 'lokasi', 'team');
+        return $this->subPekerjaans()->with('childrenRecursive', 'dokumens', 'lokasi', 'team', 'alurKerja', 'alurKerjaTahap');
     }
 
     public function scopeVisibleTo($query, User $user)

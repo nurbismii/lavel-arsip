@@ -67,7 +67,7 @@
     @if($alurKerjas->count())
         <div class="row g-3">
             @foreach($alurKerjas as $alurKerja)
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                     <div class="app-card app-card-hover h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start gap-3">

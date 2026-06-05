@@ -17,6 +17,9 @@
 
             @auth
             <div class="ms-lg-4 mt-3 mt-lg-0 me-auto">
+                @php
+                    $kelolaDokumenActive = request()->is('pekerjaan*') || request()->is('lokasi-dokumen*');
+                @endphp
 
                 <ul class="navbar-nav flex-column flex-lg-row gap-2">
                     <li class="nav-item">
@@ -33,18 +36,25 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link px-3 py-2 rounded-pill {{ request()->is('pekerjaan*') ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
-                            href="{{ route('pekerjaan.index') }}">
-                            Dokumen Operasional
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-pill {{ $kelolaDokumenActive ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
+                            href="#"
+                            id="kelolaDokumenDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Kelola Dokumen
                         </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link px-3 py-2 rounded-pill {{ request()->is('lokasi-dokumen*') ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
-                            href="{{ route('lokasi-dokumen.index') }}">
-                            Lokasi Dokumen
-                        </a>
+                        <div class="dropdown-menu shadow-sm border-0 rounded-3 mt-2" aria-labelledby="kelolaDokumenDropdown">
+                            <a class="dropdown-item {{ request()->is('pekerjaan*') ? 'active' : '' }}"
+                                href="{{ route('pekerjaan.index') }}">
+                                Dokumen Operasional
+                            </a>
+                            <a class="dropdown-item {{ request()->is('lokasi-dokumen*') ? 'active' : '' }}"
+                                href="{{ route('lokasi-dokumen.index') }}">
+                                Lokasi Dokumen
+                            </a>
+                        </div>
                     </li>
 
                     @if(auth()->user()->isAdmin())
