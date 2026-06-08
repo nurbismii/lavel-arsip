@@ -96,6 +96,7 @@
 
                             <div class="mt-3 d-flex flex-wrap gap-2">
                                 <span class="badge bg-light text-secondary border">{{ $alurKerja->tahaps_count }} tahap proses</span>
+                                <span class="badge bg-light text-secondary border">{{ $alurKerja->sop_pengetahuans_count }} SOP/pengetahuan</span>
                                 <span class="badge bg-light text-secondary border">{{ $alurKerja->pekerjaans_count }} dokumen/folder terkait</span>
                                 <span class="badge bg-light text-secondary border">Tinjauan: {{ $alurKerja->tanggal_tinjauan_label }}</span>
                             </div>

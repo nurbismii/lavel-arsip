@@ -146,6 +146,11 @@ class AlurKerja extends Model
         return $this->hasMany(AlurKerjaTahap::class)->orderBy('urutan')->orderBy('id');
     }
 
+    public function sopPengetahuans()
+    {
+        return $this->hasMany(SopPengetahuan::class)->latest();
+    }
+
     public function scopeVisibleTo($query, User $user)
     {
         if ($user->canAccessAllFiles()) {

@@ -28,7 +28,7 @@ class AlurKerjaController extends Controller
         $query = AlurKerja::query()
             ->visibleTo(auth()->user())
             ->with(['team', 'pemilikUtama', 'pemilikCadangan'])
-            ->withCount(['pekerjaans', 'tahaps'])
+            ->withCount(['pekerjaans', 'tahaps', 'sopPengetahuans'])
             ->orderBy('nama');
 
         if ($search !== '') {
@@ -102,7 +102,15 @@ class AlurKerjaController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('alur_kerja.show', compact('alurKerja', 'pekerjaans'));
+        $sopPengetahuans = $alurKerja->sopPengetahuans()
+            ->visibleTo(auth()->user())
+            ->with(['tahap', 'pemilik'])
+            ->withCount('lampirans')
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        return view('alur_kerja.show', compact('alurKerja', 'pekerjaans', 'sopPengetahuans'));
     }
 
     public function edit(AlurKerja $alurKerja)

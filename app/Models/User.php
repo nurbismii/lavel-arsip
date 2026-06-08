@@ -114,4 +114,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    public function sopPengetahuans()
+    {
+        return $this->hasMany(SopPengetahuan::class, 'pemilik_user_id');
+    }
 }

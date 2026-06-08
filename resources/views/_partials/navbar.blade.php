@@ -36,6 +36,13 @@
                         </a>
                     </li>
 
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 rounded-pill {{ request()->is('sop-pengetahuan*') ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
+                            href="{{ route('sop-pengetahuan.index') }}">
+                            SOP & Panduan
+                        </a>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle px-3 py-2 rounded-pill {{ $kelolaDokumenActive ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
                             href="#"

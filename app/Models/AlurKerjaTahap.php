@@ -39,4 +39,9 @@ class AlurKerjaTahap extends Model
     {
         return $this->hasMany(AlurKerjaTahapPic::class)->orderBy('urutan')->orderBy('id');
     }
+
+    public function sopPengetahuans()
+    {
+        return $this->hasMany(SopPengetahuan::class, 'alur_kerja_tahap_id')->latest();
+    }
 }

@@ -510,6 +510,58 @@
         </div>
     </div>
 
+    <div class="app-card mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                <div>
+                    <h6 class="fw-semibold mb-1">SOP dan Pengetahuan Terkait</h6>
+                    <small class="text-muted">Panduan, SOP, FAQ, dan pembelajaran yang ditautkan ke alur kerja ini.</small>
+                </div>
+                <a href="{{ route('sop-pengetahuan.create', ['alur_kerja_id' => $alurKerja->id]) }}" class="btn btn-sm btn-outline-primary">Tambah SOP</a>
+            </div>
+
+            @if($sopPengetahuans->count())
+                <div class="row g-3">
+                    @foreach($sopPengetahuans as $item)
+                        <div class="col-lg-6">
+                            <div class="border rounded-3 p-3 bg-light h-100">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                    @if($item->kode)
+                                        <span class="badge bg-white text-dark border">{{ $item->kode }}</span>
+                                    @endif
+                                    <span class="badge {{ $item->jenis_badge_class }}">{{ $item->jenis_label }}</span>
+                                    <span class="badge {{ $item->status_badge_class }}">{{ $item->status_label }}</span>
+                                    @if($item->tahap)
+                                        <span class="badge bg-white text-secondary border">Tahap {{ $item->tahap->urutan }}</span>
+                                    @endif
+                                </div>
+                                <h6 class="fw-bold mb-1">
+                                    <a href="{{ route('sop-pengetahuan.show', $item->id) }}" class="text-decoration-none">
+                                        {{ $item->judul }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted d-block">Pemilik: {{ optional($item->pemilik)->name ?: '-' }}</small>
+                                <small class="text-muted d-block">{{ $item->lampirans_count }} lampiran - Tinjauan: {{ $item->tanggal_tinjauan_label }}</small>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-3">
+                    <a href="{{ route('sop-pengetahuan.index', ['alur_kerja_id' => $alurKerja->id]) }}" class="btn btn-sm btn-outline-secondary">
+                        Lihat Semua SOP Terkait
+                    </a>
+                </div>
+            @else
+                <div class="empty-state">
+                    <div class="empty-state-icon">0</div>
+                    <h5>Belum ada SOP terkait</h5>
+                    <p>Tambahkan SOP atau artikel pengetahuan agar alur kerja memiliki panduan operasional yang jelas.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <div class="app-card">
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">

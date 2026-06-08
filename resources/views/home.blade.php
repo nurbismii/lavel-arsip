@@ -116,6 +116,63 @@
         @endif
     </div>
 
+    <div class="mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+            <div>
+                <h6 class="fw-semibold mb-1 text-uppercase text-muted">Fase 2 - SOP dan Pengetahuan</h6>
+                <small class="text-muted">Pantau kesiapan SOP, panduan, kebijakan, FAQ, dan pembelajaran operasional.</small>
+            </div>
+            <a href="{{ route('sop-pengetahuan.index') }}" class="btn btn-sm btn-outline-primary">
+                Buka Pengetahuan
+            </a>
+        </div>
+
+        <div class="row g-3">
+            @foreach($knowledgeStats as $stat)
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body">
+                            <span class="badge {{ $stat['class'] }} mb-2">{{ $stat['label'] }}</span>
+                            <h4 class="fw-bold mb-0">{{ $stat['value'] }}</h4>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        @if($knowledgeAttentionItems->count())
+            <div class="card border-0 shadow-sm rounded-4 mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                        <h6 class="fw-semibold mb-0">SOP Perlu Tinjauan</h6>
+                        <a href="{{ route('sop-pengetahuan.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                    </div>
+                    <div class="row g-2">
+                        @foreach($knowledgeAttentionItems as $item)
+                            <div class="col-md-6">
+                                <div class="border rounded-3 p-3 h-100">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                        <span class="badge {{ $item->jenis_badge_class }}">{{ $item->jenis_label }}</span>
+                                        <span class="badge {{ $item->status_badge_class }}">{{ $item->status_label }}</span>
+                                    </div>
+                                    <a href="{{ route('sop-pengetahuan.show', $item->id) }}" class="fw-semibold text-decoration-none">
+                                        {{ $item->judul }}
+                                    </a>
+                                    <small class="text-muted d-block">
+                                        Pemilik: {{ optional($item->pemilik)->name ?: '-' }}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        Tinjauan: {{ $item->tanggal_tinjauan_label }}
+                                    </small>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
+
     @if($deadlineAlerts->count())
     <div class="alert {{ $hasCriticalDeadlineAlerts ? 'alert-danger' : 'alert-warning' }} border-0 shadow-sm rounded-4 mb-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
@@ -164,7 +221,7 @@
         <h6 class="fw-semibold mb-3 text-uppercase text-muted">Quick Access</h6>
 
         <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <a href="{{ route('profile.edit') }}" class="text-decoration-none">
                     <div class="card border-0 shadow-sm rounded-4 h-100" style="transition: .2s;">
                         <div class="card-body d-flex align-items-center">
@@ -184,7 +241,7 @@
                 </a>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <a href="{{ route('pekerjaan.index') }}" class="text-decoration-none">
                     <div class="card border-0 shadow-sm rounded-4 h-100" style="transition: .2s;">
                         <div class="card-body d-flex align-items-center">
@@ -198,6 +255,26 @@
                             <div>
                                 <h6 class="mb-0 fw-semibold">Dokumen</h6>
                                 <small class="text-muted">Lihat & tambah dokumen</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{{ route('sop-pengetahuan.index') }}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm rounded-4 h-100" style="transition: .2s;">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="dashboard-icon-box dashboard-icon-warning rounded-3">
+                                    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                        <path d="M2 2.75A1.75 1.75 0 0 1 3.75 1h8.5A1.75 1.75 0 0 1 14 2.75v10.5A1.75 1.75 0 0 1 12.25 15h-8.5A1.75 1.75 0 0 1 2 13.25V2.75ZM3.75 2a.75.75 0 0 0-.75.75v10.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75V2.75a.75.75 0 0 0-.75-.75h-8.5ZM5 4h6v1H5V4Zm0 2.5h6v1H5v-1ZM5 9h4v1H5V9Z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-semibold">SOP dan Pengetahuan</h6>
+                                <small class="text-muted">Buka panduan operasional</small>
                             </div>
                         </div>
                     </div>

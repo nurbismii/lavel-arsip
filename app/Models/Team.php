@@ -17,4 +17,9 @@ class Team extends Model
     {
         return $this->hasMany(Pekerjaan::class);
     }
+
+    public function sopPengetahuans()
+    {
+        return $this->hasMany(SopPengetahuan::class);
+    }
 }

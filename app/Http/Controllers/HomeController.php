@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\AlurKerja;
 use App\Models\Dokumen;
+use App\Models\SopPengetahuan;
 
 class HomeController extends Controller
 {
@@ -35,6 +36,7 @@ class HomeController extends Controller
             });
 
         $alurKerjaQuery = AlurKerja::query()->visibleTo($user);
+        $sopPengetahuanQuery = SopPengetahuan::query()->visibleTo($user);
 
         $opsStats = [
             [
@@ -74,6 +76,48 @@ class HomeController extends Controller
             })
             ->latest()
             ->limit(5)
+            ->get();
+
+        $knowledgeStats = [
+            [
+                'label' => 'Total SOP/Pengetahuan',
+                'value' => (clone $sopPengetahuanQuery)->count(),
+                'class' => 'bg-primary',
+            ],
+            [
+                'label' => 'Sudah Terbit',
+                'value' => (clone $sopPengetahuanQuery)
+                    ->where('status', SopPengetahuan::STATUS_TERBIT)
+                    ->count(),
+                'class' => 'bg-success',
+            ],
+            [
+                'label' => 'Draft/Review',
+                'value' => (clone $sopPengetahuanQuery)
+                    ->whereIn('status', [SopPengetahuan::STATUS_DRAFT, SopPengetahuan::STATUS_REVIEW])
+                    ->count(),
+                'class' => 'bg-warning text-dark',
+            ],
+            [
+                'label' => 'Perlu Tinjauan',
+                'value' => (clone $sopPengetahuanQuery)
+                    ->where(function ($query) {
+                        $query->where('status', '!=', SopPengetahuan::STATUS_TERBIT)
+                            ->orWhereDate('target_tinjauan_berikutnya', '<', now()->toDateString());
+                    })
+                    ->count(),
+                'class' => 'bg-danger',
+            ],
+        ];
+
+        $knowledgeAttentionItems = (clone $sopPengetahuanQuery)
+            ->with(['alurKerja', 'tahap', 'pemilik'])
+            ->where(function ($query) {
+                $query->where('status', '!=', SopPengetahuan::STATUS_TERBIT)
+                    ->orWhereDate('target_tinjauan_berikutnya', '<', now()->toDateString());
+            })
+            ->latest()
+            ->limit(4)
             ->get();
 
         $statusTotals = (clone $dokumenQuery)
@@ -165,6 +209,8 @@ class HomeController extends Controller
             'dashboardStats' => $dashboardStats,
             'opsStats' => $opsStats,
             'opsAttentionItems' => $opsAttentionItems,
+            'knowledgeStats' => $knowledgeStats,
+            'knowledgeAttentionItems' => $knowledgeAttentionItems,
             'statusBoards' => $statusBoards,
             'deadlineAlerts' => $deadlineAlerts,
             'hasCriticalDeadlineAlerts' => $hasCriticalDeadlineAlerts,

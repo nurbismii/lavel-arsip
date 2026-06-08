@@ -6,6 +6,7 @@ use App\Http\Controllers\AlurKerjaController;
 use App\Http\Controllers\AlurKerjaTahapController;
 use App\Http\Controllers\LokasiDokumenController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SopPengetahuanController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,10 @@ Route::middleware('check.login')->group(function () {
     Route::get('/alur-kerja/{alurKerja}/tahap/{tahap}/lampiran/{lampiran}', [AlurKerjaTahapController::class, 'showLampiran'])->name('alur-kerja.tahap.lampiran.show');
     Route::delete('/alur-kerja/{alurKerja}/tahap/{tahap}/lampiran/{lampiran}', [AlurKerjaTahapController::class, 'destroyLampiran'])->name('alur-kerja.tahap.lampiran.destroy');
     Route::resource('alur-kerja', AlurKerjaController::class);
+    Route::post('/sop-pengetahuan/editor-image', [SopPengetahuanController::class, 'uploadEditorImage'])->name('sop-pengetahuan.editor-image.upload');
+    Route::get('/sop-pengetahuan/{sopPengetahuan}/lampiran/{lampiran}', [SopPengetahuanController::class, 'showLampiran'])->name('sop-pengetahuan.lampiran.show');
+    Route::delete('/sop-pengetahuan/{sopPengetahuan}/lampiran/{lampiran}', [SopPengetahuanController::class, 'destroyLampiran'])->name('sop-pengetahuan.lampiran.destroy');
+    Route::resource('sop-pengetahuan', SopPengetahuanController::class);
     Route::resource('pekerjaan', PekerjaanController::class);
     Route::get('/lokasi-dokumen', [LokasiDokumenController::class, 'index'])->name('lokasi-dokumen.index');
     Route::get('/lokasi-dokumen/create', [LokasiDokumenController::class, 'create'])->name('lokasi-dokumen.create');
