@@ -32,6 +32,7 @@ class AlurKerja extends Model
         'status_dokumentasi',
         'status_operasional',
         'target_tinjauan_berikutnya',
+        'estimasi',
     ];
 
     protected $casts = [
@@ -112,6 +113,11 @@ class AlurKerja extends Model
     public function getTanggalTinjauanLabelAttribute(): string
     {
         return $this->target_tinjauan_berikutnya ? $this->target_tinjauan_berikutnya->format('d M Y') : '-';
+    }
+
+    public function getEstimasiLabelAttribute(): string
+    {
+        return $this->estimasi ?: '-';
     }
 
     public function getMembutuhkanPerhatianAttribute(): bool

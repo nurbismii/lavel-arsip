@@ -87,8 +87,8 @@
         @enderror
     </div>
 
-    <div class="col-md-3">
-        <label class="form-label">Risiko <span class="required-mark">*</span></label>
+    <div class="col-md-4">
+        <label class="form-label">Prioritas <span class="required-mark">*</span></label>
         <select name="risiko" class="form-select @error('risiko') is-invalid @enderror" required>
             @foreach($risikoOptions as $value => $label)
                 <option value="{{ $value }}" {{ old('risiko', optional($alurKerja)->risiko ?: \App\Models\AlurKerja::RISIKO_SEDANG) === $value ? 'selected' : '' }}>
@@ -101,7 +101,7 @@
         @enderror
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-4">
         <label class="form-label">Status Dokumentasi <span class="required-mark">*</span></label>
         <select name="status_dokumentasi" class="form-select @error('status_dokumentasi') is-invalid @enderror" required>
             @foreach($statusDokumentasiOptions as $value => $label)
@@ -115,28 +115,16 @@
         @enderror
     </div>
 
-    <div class="col-md-3">
-        <label class="form-label">Status Operasional <span class="required-mark">*</span></label>
-        <select name="status_operasional" class="form-select @error('status_operasional') is-invalid @enderror" required>
-            @foreach($statusOperasionalOptions as $value => $label)
-                <option value="{{ $value }}" {{ old('status_operasional', optional($alurKerja)->status_operasional ?: \App\Models\AlurKerja::STATUS_AKTIF) === $value ? 'selected' : '' }}>
-                    {{ $label }}
-                </option>
-            @endforeach
-        </select>
-        @error('status_operasional')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <div class="col-md-3">
-        <label class="form-label">Target Tinjauan</label>
+    <div class="col-md-4">
+        <label class="form-label">Estimasi Waktu Pengerjaan</label>
         <input
-            type="date"
-            name="target_tinjauan_berikutnya"
-            class="form-control @error('target_tinjauan_berikutnya') is-invalid @enderror"
-            value="{{ old('target_tinjauan_berikutnya', optional(optional($alurKerja)->target_tinjauan_berikutnya)->format('Y-m-d')) }}">
-        @error('target_tinjauan_berikutnya')
+            type="text"
+            name="estimasi"
+            class="form-control @error('estimasi') is-invalid @enderror"
+            value="{{ old('estimasi', optional($alurKerja)->estimasi) }}"
+            maxlength="100"
+            placeholder="Contoh: 2 hari atau 1-2 hari, 3 jam, dst.">
+        @error('estimasi')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>

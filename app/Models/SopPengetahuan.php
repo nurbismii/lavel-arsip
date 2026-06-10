@@ -7,10 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class SopPengetahuan extends Model
 {
     public const JENIS_SOP = 'sop';
-    public const JENIS_PANDUAN = 'panduan';
-    public const JENIS_KEBIJAKAN = 'kebijakan';
-    public const JENIS_FAQ = 'faq';
-    public const JENIS_PEMBELAJARAN = 'pembelajaran';
 
     public const STATUS_DRAFT = 'draft';
     public const STATUS_REVIEW = 'review';
@@ -67,7 +63,6 @@ class SopPengetahuan extends Model
     {
         return [
             self::JENIS_SOP => 'SOP',
-            self::JENIS_PANDUAN => 'Panduan'
         ];
     }
 
@@ -104,18 +99,14 @@ class SopPengetahuan extends Model
 
     public function getJenisLabelAttribute(): string
     {
-        return self::jenisOptions()[$this->jenis] ?? ucfirst((string) $this->jenis);
+        return self::jenisOptions()[$this->jenis] ?? 'SOP';
     }
 
     public function getJenisBadgeClassAttribute(): string
     {
         return [
             self::JENIS_SOP => 'bg-primary',
-            self::JENIS_PANDUAN => 'bg-info',
-            self::JENIS_KEBIJAKAN => 'bg-dark',
-            self::JENIS_FAQ => 'bg-success',
-            self::JENIS_PEMBELAJARAN => 'bg-warning text-dark',
-        ][$this->jenis] ?? 'bg-secondary';
+        ][$this->jenis] ?? 'bg-primary';
     }
 
     public function getStatusLabelAttribute(): string

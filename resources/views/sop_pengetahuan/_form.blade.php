@@ -4,6 +4,8 @@
 @php($documentContent = old('konten', optional($sopPengetahuan)->konten))
 
 <div data-knowledge-form data-rich-text-scope="explicit">
+    <input type="hidden" name="jenis" value="{{ \App\Models\SopPengetahuan::JENIS_SOP }}">
+
     <div class="sop-form-guide mb-3">
         <div class="sop-form-guide__item">
             <span>1</span>
@@ -144,7 +146,7 @@
         <div class="collapse mt-3" id="sopAdvancedSettings">
             <div class="sop-advanced-panel">
                 <div class="row g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">No. Dokumen</label>
                         <input
                             type="text"
@@ -172,21 +174,7 @@
                         @enderror
                     </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">Tipe Dokumen</label>
-                        <select name="jenis" class="form-select @error('jenis') is-invalid @enderror">
-                            @foreach($jenisOptions as $value => $label)
-                                <option value="{{ $value }}" {{ old('jenis', optional($sopPengetahuan)->jenis ?: \App\Models\SopPengetahuan::JENIS_SOP) === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('jenis')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Penanggung Jawab</label>
                         <select name="pemilik_user_id" class="form-select @error('pemilik_user_id') is-invalid @enderror" {{ auth()->user()->canAccessAllFiles() ? '' : 'disabled' }}>
                             @foreach($users as $user)

@@ -4,9 +4,9 @@
 <div class="container py-4">
     <div class="app-page-header">
         <div>
-            <span class="app-page-eyebrow">Fase 2 - Pengetahuan</span>
-            <h4 class="app-page-title">SOP dan Pengetahuan</h4>
-            <p class="app-page-subtitle">Kelola SOP, panduan, kebijakan, FAQ, dan pembelajaran agar proses operasional mudah dipahami.</p>
+            <span class="app-page-eyebrow">Fase 2 - SOP</span>
+            <h4 class="app-page-title">SOP</h4>
+            <p class="app-page-subtitle">Kelola standar prosedur operasional agar proses kerja terdokumentasi, mudah diikuti, dan siap ditinjau.</p>
         </div>
         <div class="app-page-actions">
             <a href="{{ route('sop-pengetahuan.create') }}" class="btn btn-primary">+ Tambah SOP</a>
@@ -15,7 +15,7 @@
 
     <form method="GET" action="{{ route('sop-pengetahuan.index') }}" class="filter-panel" data-loading-form>
         <div class="row g-3 align-items-end">
-            <div class="col-12 col-lg-4">
+            <div class="col-12 col-lg-5">
                 <label class="form-label">Pencarian</label>
                 <input
                     type="text"
@@ -23,15 +23,6 @@
                     value="{{ $search }}"
                     class="form-control"
                     placeholder="Cari judul, kode, isi, atau kata kunci...">
-            </div>
-            <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label">Jenis</label>
-                <select name="jenis" class="form-select">
-                    <option value="">Semua Jenis</option>
-                    @foreach($jenisOptions as $value => $label)
-                        <option value="{{ $value }}" {{ $jenis === $value ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
             </div>
             <div class="col-12 col-md-4 col-lg-2">
                 <label class="form-label">Status</label>
@@ -42,7 +33,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-12 col-md-4 col-lg-2">
+            <div class="col-12 col-md-4 col-lg-3">
                 <label class="form-label">Alur Kerja</label>
                 <select name="alur_kerja_id" class="form-select">
                     <option value="">Semua Alur</option>
@@ -125,7 +116,7 @@
     @else
         <div class="empty-state">
             <div class="empty-state-icon">0</div>
-            <h5>Belum ada SOP atau pengetahuan</h5>
+            <h5>Belum ada SOP</h5>
             <p>Data akan muncul setelah SOP dibuat atau filter pencarian diubah.</p>
         </div>
     @endif

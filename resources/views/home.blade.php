@@ -63,7 +63,7 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
             <div>
                 <h6 class="fw-semibold mb-1 text-uppercase text-muted">Fondasi V-Ops</h6>
-                <small class="text-muted">Ringkasan alur kerja, risiko, kesiapan dokumentasi, dan cadangan operasional.</small>
+                <small class="text-muted">Ringkasan alur kerja, prioritas, kesiapan dokumentasi, dan cadangan operasional.</small>
             </div>
             <a href="{{ route('alur-kerja.index') }}" class="btn btn-sm btn-outline-primary">
                 Buka Registri
@@ -119,11 +119,11 @@
     <div class="mb-4">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
             <div>
-                <h6 class="fw-semibold mb-1 text-uppercase text-muted">Fase 2 - SOP dan Pengetahuan</h6>
-                <small class="text-muted">Pantau kesiapan SOP, panduan, kebijakan, FAQ, dan pembelajaran operasional.</small>
+                <h6 class="fw-semibold mb-1 text-uppercase text-muted">Fase 2 - SOP</h6>
+                <small class="text-muted">Pantau kesiapan SOP operasional, status terbit, dan jadwal tinjauan dokumen.</small>
             </div>
             <a href="{{ route('sop-pengetahuan.index') }}" class="btn btn-sm btn-outline-primary">
-                Buka Pengetahuan
+                Buka SOP
             </a>
         </div>
 
@@ -273,8 +273,8 @@
                                 </div>
                             </div>
                             <div>
-                                <h6 class="mb-0 fw-semibold">SOP dan Pengetahuan</h6>
-                                <small class="text-muted">Buka panduan operasional</small>
+                                <h6 class="mb-0 fw-semibold">SOP</h6>
+                                <small class="text-muted">Buka standar prosedur operasional</small>
                             </div>
                         </div>
                     </div>

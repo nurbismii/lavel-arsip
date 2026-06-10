@@ -10,7 +10,7 @@
         <div>
             <span class="app-page-eyebrow">Fondasi V-Ops</span>
             <h4 class="app-page-title">Registri Alur Kerja</h4>
-            <p class="app-page-subtitle">Petakan proses, tahapan, PIC, risiko, aplikasi, akun, dan kesiapan dokumentasi operasional.</p>
+            <p class="app-page-subtitle">Petakan proses, tahapan, PIC, prioritas, aplikasi, akun, dan kesiapan dokumentasi operasional.</p>
         </div>
         <div class="app-page-actions">
             <a href="{{ route('alur-kerja.create') }}" class="btn btn-primary">+ Tambah Alur Kerja</a>
@@ -29,9 +29,9 @@
                     placeholder="Cari nama, kode, atau deskripsi...">
             </div>
             <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label">Risiko</label>
+                <label class="form-label">Prioritas</label>
                 <select name="risiko" class="form-select">
-                    <option value="">Semua Risiko</option>
+                    <option value="">Semua Prioritas</option>
                     @foreach($risikoOptions as $value => $label)
                         <option value="{{ $value }}" {{ $risiko === $value ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
@@ -96,9 +96,9 @@
 
                             <div class="mt-3 d-flex flex-wrap gap-2">
                                 <span class="badge bg-light text-secondary border">{{ $alurKerja->tahaps_count }} tahap proses</span>
-                                <span class="badge bg-light text-secondary border">{{ $alurKerja->sop_pengetahuans_count }} SOP/pengetahuan</span>
+                                <span class="badge bg-light text-secondary border">{{ $alurKerja->sop_pengetahuans_count }} SOP</span>
                                 <span class="badge bg-light text-secondary border">{{ $alurKerja->pekerjaans_count }} dokumen/folder terkait</span>
-                                <span class="badge bg-light text-secondary border">Tinjauan: {{ $alurKerja->tanggal_tinjauan_label }}</span>
+                                <span class="badge bg-light text-secondary border">Estimasi: {{ $alurKerja->estimasi_label }}</span>
                             </div>
                         </div>
                     </div>

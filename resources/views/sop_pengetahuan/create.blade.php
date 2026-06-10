@@ -4,9 +4,9 @@
 <div class="container py-4">
     <div class="app-page-header">
         <div>
-            <span class="app-page-eyebrow">Fase 2 - Panduan</span>
-            <h4 class="app-page-title">Tambah SOP dan Panduan</h4>
-            <p class="app-page-subtitle">Dokumentasikan cara kerja, aturan, pembelajaran, dan catatan penting agar proses mudah dipahami.</p>
+            <span class="app-page-eyebrow">Fase 2 - SOP</span>
+            <h4 class="app-page-title">Tambah SOP</h4>
+            <p class="app-page-subtitle">Dokumentasikan standar prosedur operasional agar proses kerja mudah dipahami dan ditinjau.</p>
         </div>
         <div class="app-page-actions">
             <a href="{{ route('sop-pengetahuan.index') }}" class="btn btn-outline-secondary">Kembali</a>
@@ -15,7 +15,7 @@
 
     @if($errors->any())
         <div class="alert alert-danger">
-            <strong>Gagal menyimpan SOP atau panduan.</strong>
+            <strong>Gagal menyimpan SOP.</strong>
             <div class="mb-2">Periksa kembali judul, isi dokumen pada editor, relasi alur kerja, dan ukuran lampiran yang dipilih.</div>
             <ul class="mb-0 ps-3">
                 @foreach($errors->all() as $error)

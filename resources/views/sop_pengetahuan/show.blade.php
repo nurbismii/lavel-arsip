@@ -15,7 +15,7 @@
 <div class="container py-4">
     @if($errors->any())
         <div class="alert alert-danger">
-            <strong>Gagal memproses perubahan SOP atau pengetahuan.</strong>
+            <strong>Gagal memproses perubahan SOP.</strong>
             <div class="mb-2">Periksa kembali data atau lampiran yang dipilih.</div>
             <ul class="mb-0 ps-3">
                 @foreach($errors->all() as $error)
@@ -27,7 +27,7 @@
 
     <div class="app-page-header">
         <div>
-            <span class="app-page-eyebrow">Detail SOP dan Pengetahuan</span>
+            <span class="app-page-eyebrow">Detail SOP</span>
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                 @if($sopPengetahuan->kode)
                     <span class="badge bg-light text-dark border">No. Dokumen: {{ $sopPengetahuan->kode }}</span>
@@ -226,7 +226,7 @@
                             <div class="empty-state">
                                 <div class="empty-state-icon">0</div>
                                 <h5>Prosedur belum tersedia</h5>
-                                <p>Tambahkan minimal satu aktivitas agar SOP dapat digunakan sebagai panduan kerja.</p>
+                                <p>Tambahkan minimal satu aktivitas agar SOP dapat digunakan sebagai acuan kerja.</p>
                             </div>
                         @endif
                     </div>

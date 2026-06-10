@@ -191,11 +191,17 @@ class AlurKerjaController extends Controller
             'pemilik_cadangan_user_id' => ['nullable', 'integer', 'exists:users,id', 'different:pemilik_utama_user_id'],
             'risiko' => ['required', Rule::in(array_keys(AlurKerja::risikoOptions()))],
             'status_dokumentasi' => ['required', Rule::in(array_keys(AlurKerja::statusDokumentasiOptions()))],
-            'status_operasional' => ['required', Rule::in(array_keys(AlurKerja::statusOperasionalOptions()))],
-            'target_tinjauan_berikutnya' => ['nullable', 'date'],
+            'status_operasional' => ['sometimes', 'required', Rule::in(array_keys(AlurKerja::statusOperasionalOptions()))],
+            'target_tinjauan_berikutnya' => ['sometimes', 'nullable', 'date'],
+            'estimasi' => ['nullable', 'string', 'max:100'],
         ]);
 
         $data = RichText::sanitizeFields($data, ['deskripsi']);
+
+        if (array_key_exists('estimasi', $data)) {
+            $data['estimasi'] = trim((string) $data['estimasi']);
+            $data['estimasi'] = $data['estimasi'] === '' ? null : $data['estimasi'];
+        }
 
         if (!auth()->user()->canAccessAllFiles()) {
             $allowedTeamIds = auth()->user()->assignedTeamIds();

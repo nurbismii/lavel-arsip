@@ -21,7 +21,6 @@ class SopPengetahuanController extends Controller
     public function index()
     {
         $search = trim((string) request('search', ''));
-        $jenis = $this->resolveFilter(request('jenis'), SopPengetahuan::jenisOptions());
         $status = $this->resolveFilter(request('status'), SopPengetahuan::statusOptions());
         $alurKerjaId = $this->resolveAlurKerjaFilter(request('alur_kerja_id'));
 
@@ -44,10 +43,6 @@ class SopPengetahuanController extends Controller
             });
         }
 
-        if ($jenis !== '') {
-            $query->where('jenis', $jenis);
-        }
-
         if ($status !== '') {
             $query->where('status', $status);
         }
@@ -61,10 +56,8 @@ class SopPengetahuanController extends Controller
         return view('sop_pengetahuan.index', [
             'sopPengetahuans' => $sopPengetahuans,
             'search' => $search,
-            'jenis' => $jenis,
             'status' => $status,
             'alurKerjaId' => $alurKerjaId,
-            'jenisOptions' => SopPengetahuan::jenisOptions(),
             'statusOptions' => SopPengetahuan::statusOptions(),
             'alurKerjas' => $this->availableAlurKerjasForCurrentUser(),
         ]);
@@ -84,13 +77,13 @@ class SopPengetahuanController extends Controller
 
         ActivityLogService::log(
             'sop_pengetahuan.create',
-            'Menambahkan SOP atau artikel pengetahuan.',
+            'Menambahkan SOP.',
             $sopPengetahuan
         );
 
         return redirect()
             ->route('sop-pengetahuan.show', $sopPengetahuan->id)
-            ->with('success', 'SOP atau pengetahuan berhasil ditambahkan.');
+            ->with('success', 'SOP berhasil ditambahkan.');
     }
 
     public function show(SopPengetahuan $sopPengetahuan)
@@ -126,13 +119,13 @@ class SopPengetahuanController extends Controller
 
         ActivityLogService::log(
             'sop_pengetahuan.update',
-            'Memperbarui SOP atau artikel pengetahuan.',
+            'Memperbarui SOP.',
             $sopPengetahuan
         );
 
         return redirect()
             ->route('sop-pengetahuan.show', $sopPengetahuan->id)
-            ->with('success', 'SOP atau pengetahuan berhasil diperbarui.');
+            ->with('success', 'SOP berhasil diperbarui.');
     }
 
     public function destroy(SopPengetahuan $sopPengetahuan)
@@ -151,13 +144,13 @@ class SopPengetahuanController extends Controller
 
         ActivityLogService::log(
             'sop_pengetahuan.delete',
-            'Menghapus SOP atau artikel pengetahuan.',
+            'Menghapus SOP.',
             (object) ['id' => $sopPengetahuan->id, 'judul' => $judul]
         );
 
         return redirect()
             ->route('sop-pengetahuan.index')
-            ->with('success', 'SOP atau pengetahuan berhasil dihapus.');
+            ->with('success', 'SOP berhasil dihapus.');
     }
 
     public function showLampiran(SopPengetahuan $sopPengetahuan, SopPengetahuanLampiran $lampiran)
@@ -166,7 +159,7 @@ class SopPengetahuanController extends Controller
         $this->pastikanBisaDilihat($sopPengetahuan);
 
         if (!$lampiran->path || !Storage::disk($lampiran->storage_disk)->exists($lampiran->path)) {
-            abort(404, 'Lampiran SOP atau pengetahuan tidak ditemukan.');
+            abort(404, 'Lampiran SOP tidak ditemukan.');
         }
 
         if ($lampiran->storage_disk === 'r2') {
@@ -194,7 +187,7 @@ class SopPengetahuanController extends Controller
 
         ActivityLogService::log(
             'sop_pengetahuan.lampiran.delete',
-            'Menghapus lampiran SOP atau pengetahuan.',
+            'Menghapus lampiran SOP.',
             $lampiran
         );
 
@@ -240,7 +233,6 @@ class SopPengetahuanController extends Controller
             ],
             'nomor_revisi' => ['nullable', 'string', 'max:50'],
             'judul' => ['required', 'string', 'max:255'],
-            'jenis' => ['required', Rule::in(array_keys(SopPengetahuan::jenisOptions()))],
             'ringkasan' => ['nullable', 'string'],
             'tujuan' => ['nullable', 'string'],
             'ruang_lingkup' => ['nullable', 'string'],
@@ -290,22 +282,21 @@ class SopPengetahuanController extends Controller
 
         $data['daftar_lampiran'] = $this->normalizedLampiranRows((array) ($data['daftar_lampiran'] ?? []));
         $data['catatan_revisi'] = $this->normalizedRevisiRows((array) ($data['catatan_revisi'] ?? []));
+        $data['jenis'] = SopPengetahuan::JENIS_SOP;
         $data['alur_kerja_id'] = $this->resolveAllowedAlurKerjaId($data['alur_kerja_id'] ?? null);
         $data['alur_kerja_tahap_id'] = $this->resolveAllowedAlurKerjaTahapId($data['alur_kerja_tahap_id'] ?? null, $data['alur_kerja_id']);
 
-        if (($data['jenis'] ?? null) === SopPengetahuan::JENIS_SOP) {
-            $messages = [];
-            $hasStructuredSop = filled($data['tujuan'] ?? null)
-                && filled($data['ruang_lingkup'] ?? null)
-                && !empty($data['prosedur']);
+        $messages = [];
+        $hasStructuredSop = filled($data['tujuan'] ?? null)
+            && filled($data['ruang_lingkup'] ?? null)
+            && !empty($data['prosedur']);
 
-            if (!filled($data['konten'] ?? null) && !$hasStructuredSop) {
-                $messages['konten'] = 'Isi dokumen SOP wajib diisi pada editor utama.';
-            }
+        if (!filled($data['konten'] ?? null) && !$hasStructuredSop) {
+            $messages['konten'] = 'Isi dokumen SOP wajib diisi pada editor utama.';
+        }
 
-            if (!empty($messages)) {
-                throw ValidationException::withMessages($messages);
-            }
+        if (!empty($messages)) {
+            throw ValidationException::withMessages($messages);
         }
 
         if (!auth()->user()->canAccessAllFiles()) {
@@ -608,7 +599,6 @@ class SopPengetahuanController extends Controller
                 ->get(['id', 'name', 'email']),
             'alurKerjas' => $alurKerjas,
             'alurKerjaStageMap' => $alurKerjaStageMap,
-            'jenisOptions' => SopPengetahuan::jenisOptions(),
             'statusOptions' => SopPengetahuan::statusOptions(),
             'prioritasOptions' => SopPengetahuan::prioritasOptions(),
             'simbolOptions' => SopPengetahuan::simbolOptions(),
@@ -648,7 +638,7 @@ class SopPengetahuanController extends Controller
         abort_unless(
             SopPengetahuan::query()->visibleTo(auth()->user())->whereKey($sopPengetahuan->id)->exists(),
             403,
-            'Anda tidak memiliki izin melihat SOP atau pengetahuan ini.'
+            'Anda tidak memiliki izin melihat SOP ini.'
         );
     }
 
@@ -657,7 +647,7 @@ class SopPengetahuanController extends Controller
         abort_unless(
             SopPengetahuan::query()->manageableBy(auth()->user())->whereKey($sopPengetahuan->id)->exists(),
             403,
-            'Anda tidak memiliki izin mengubah SOP atau pengetahuan ini.'
+            'Anda tidak memiliki izin mengubah SOP ini.'
         );
     }
 

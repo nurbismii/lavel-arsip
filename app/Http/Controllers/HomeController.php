@@ -45,7 +45,7 @@ class HomeController extends Controller
                 'class' => 'bg-primary',
             ],
             [
-                'label' => 'Risiko Tinggi/Kritis',
+                'label' => 'Prioritas Tinggi/Kritis',
                 'value' => (clone $alurKerjaQuery)
                     ->whereIn('risiko', [AlurKerja::RISIKO_TINGGI, AlurKerja::RISIKO_KRITIS])
                     ->count(),
@@ -80,7 +80,7 @@ class HomeController extends Controller
 
         $knowledgeStats = [
             [
-                'label' => 'Total SOP/Pengetahuan',
+                'label' => 'Total SOP',
                 'value' => (clone $sopPengetahuanQuery)->count(),
                 'class' => 'bg-primary',
             ],

@@ -44,7 +44,7 @@
                 <span class="badge {{ $alurKerja->status_operasional_badge_class }}">{{ $alurKerja->status_operasional_label }}</span>
             </div>
             <h4 class="app-page-title">{{ $alurKerja->nama }}</h4>
-            <p class="app-page-subtitle">Panduan operasional berisi tahapan, PIC, aplikasi, akun, file/template, dan dokumen terkait.</p>
+            <p class="app-page-subtitle">Dokumentasi operasional berisi tahapan, PIC, aplikasi, akun, file/template, dan dokumen terkait.</p>
         </div>
         <div class="app-page-actions">
             <a href="{{ route('alur-kerja.index') }}" class="btn btn-outline-secondary">Kembali</a>
@@ -93,8 +93,8 @@
                         <div class="fw-semibold">{{ optional($alurKerja->pemilikCadangan)->name ?: 'Belum ditetapkan' }}</div>
                     </div>
                     <div>
-                        <small class="text-muted d-block">Target tinjauan</small>
-                        <div class="fw-semibold">{{ $alurKerja->tanggal_tinjauan_label }}</div>
+                        <small class="text-muted d-block">Estimasi pengerjaan</small>
+                        <div class="fw-semibold">{{ $alurKerja->estimasi_label }}</div>
                     </div>
                 </div>
             </div>
@@ -504,7 +504,7 @@
                 <div class="empty-state">
                     <div class="empty-state-icon">0</div>
                     <h5>Belum ada tahapan proses</h5>
-                    <p>Tambahkan tahap agar alur kerja dapat dipakai sebagai panduan operasional.</p>
+                    <p>Tambahkan tahap agar alur kerja dapat dipakai sebagai acuan operasional.</p>
                 </div>
             @endif
         </div>
@@ -514,8 +514,8 @@
         <div class="card-body">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                 <div>
-                    <h6 class="fw-semibold mb-1">SOP dan Pengetahuan Terkait</h6>
-                    <small class="text-muted">Panduan, SOP, FAQ, dan pembelajaran yang ditautkan ke alur kerja ini.</small>
+                    <h6 class="fw-semibold mb-1">SOP Terkait</h6>
+                    <small class="text-muted">Standar prosedur operasional yang ditautkan ke alur kerja ini.</small>
                 </div>
                 <a href="{{ route('sop-pengetahuan.create', ['alur_kerja_id' => $alurKerja->id]) }}" class="btn btn-sm btn-outline-primary">Tambah SOP</a>
             </div>
@@ -556,7 +556,7 @@
                 <div class="empty-state">
                     <div class="empty-state-icon">0</div>
                     <h5>Belum ada SOP terkait</h5>
-                    <p>Tambahkan SOP atau artikel pengetahuan agar alur kerja memiliki panduan operasional yang jelas.</p>
+                    <p>Tambahkan SOP agar alur kerja memiliki acuan operasional yang jelas.</p>
                 </div>
             @endif
         </div>

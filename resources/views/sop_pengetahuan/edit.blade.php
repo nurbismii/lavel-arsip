@@ -4,8 +4,8 @@
 <div class="container py-4">
     <div class="app-page-header">
         <div>
-            <span class="app-page-eyebrow">Fase 2 - Pengetahuan</span>
-            <h4 class="app-page-title">Edit SOP dan Pengetahuan</h4>
+            <span class="app-page-eyebrow">Fase 2 - SOP</span>
+            <h4 class="app-page-title">Edit SOP</h4>
             <p class="app-page-subtitle">{{ $sopPengetahuan->judul }}</p>
         </div>
         <div class="app-page-actions">
@@ -15,7 +15,7 @@
 
     @if($errors->any())
         <div class="alert alert-danger">
-            <strong>Gagal memperbarui SOP atau pengetahuan.</strong>
+            <strong>Gagal memperbarui SOP.</strong>
             <div class="mb-2">Periksa kembali isi dokumen pada editor, status, relasi alur kerja, dan lampiran baru.</div>
             <ul class="mb-0 ps-3">
                 @foreach($errors->all() as $error)

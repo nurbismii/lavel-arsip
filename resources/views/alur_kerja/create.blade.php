@@ -69,7 +69,6 @@
                         <h6 class="fw-semibold mb-1">Tahapan Proses</h6>
                         <small class="text-muted">Isi urutan kerja seperti permintaan tenaga kerja, open rekrutmen, verifikasi berkas, dan seterusnya.</small>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-add-tahap-row>+ Tambah Tahap</button>
                 </div>
 
                 <div id="tahap-rows" class="d-grid gap-3">
@@ -163,7 +162,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-add-tahap-row>+ Tambah Tahap</button>
+                    <button type="button" class="btn btn-outline-success" data-add-tahap-row>+ Tambah Tahap</button>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-4">
