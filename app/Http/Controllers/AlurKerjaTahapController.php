@@ -148,6 +148,7 @@ class AlurKerjaTahapController extends Controller
             'urutan' => ['nullable', 'integer', 'min:1', 'max:999'],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
+            'estimasi' => ['nullable', 'string', 'max:100'],
             'aplikasi_digunakan' => ['nullable', 'string'],
             'akun_digunakan' => ['nullable', 'string'],
             'pic_terkait' => ['nullable', 'string'],
@@ -180,6 +181,7 @@ class AlurKerjaTahapController extends Controller
             'urutan' => ($data['urutan'] ?? null) ?: ($tahap ? $tahap->urutan : $this->urutanBerikutnya($alurKerja)),
             'nama' => $data['nama'],
             'deskripsi' => $data['deskripsi'] ?? null,
+            'estimasi' => $this->nullableTrimmedString($data['estimasi'] ?? null),
             'aplikasi_digunakan' => $data['aplikasi_digunakan'] ?? null,
             'akun_digunakan' => $data['akun_digunakan'] ?? null,
             'pic_terkait' => $data['pic_terkait'] ?? null,
@@ -312,6 +314,13 @@ class AlurKerjaTahapController extends Controller
             && filled(config('filesystems.disks.r2.endpoint'))
                 ? 'r2'
                 : 'local';
+    }
+
+    private function nullableTrimmedString($value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 
     private function urutanBerikutnya(AlurKerja $alurKerja): int

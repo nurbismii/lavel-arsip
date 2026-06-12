@@ -13,6 +13,7 @@ class AlurKerjaTahap extends Model
         'urutan',
         'nama',
         'deskripsi',
+        'estimasi',
         'aplikasi_digunakan',
         'akun_digunakan',
         'pic_terkait',
@@ -43,5 +44,10 @@ class AlurKerjaTahap extends Model
     public function sopPengetahuans()
     {
         return $this->hasMany(SopPengetahuan::class, 'alur_kerja_tahap_id')->latest();
+    }
+
+    public function getEstimasiLabelAttribute(): string
+    {
+        return $this->estimasi ?: '-';
     }
 }

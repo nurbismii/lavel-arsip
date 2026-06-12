@@ -51,6 +51,7 @@
                             'urutan' => 1,
                             'nama' => '',
                             'deskripsi' => '',
+                            'estimasi' => '',
                             'aplikasi_digunakan' => '',
                             'akun_digunakan' => '',
                             'pic_terkait' => '',
@@ -94,11 +95,20 @@
                                     <label class="form-label">No.</label>
                                     <input type="number" min="1" max="999" name="tahap[{{ $index }}][urutan]" class="form-control" value="{{ old('tahap.' . $index . '.urutan', data_get($tahap, 'urutan', $index + 1)) }}" data-tahap-order-input>
                                 </div>
-                                <div class="col-md-10">
+                                <div class="col-md-6">
                                     <label class="form-label">Nama Tahap</label>
                                     <input type="text" name="tahap[{{ $index }}][nama]" class="form-control @error('tahap.' . $index . '.nama') is-invalid @enderror" value="{{ old('tahap.' . $index . '.nama', data_get($tahap, 'nama')) }}" placeholder="Contoh: Tahapan pertama dari alur kerja ini">
                                     @error('tahap.' . $index . '.nama')
                                         <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estimasi Pengerjaan</label>
+                                    <input type="text" name="tahap[{{ $index }}][estimasi]" class="form-control @error('tahap.' . $index . '.estimasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.estimasi', data_get($tahap, 'estimasi')) }}" placeholder="Contoh: 2 jam / 1 hari kerja">
+                                    @error('tahap.' . $index . '.estimasi')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @else
+                                        <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                                     @enderror
                                 </div>
                                 <div class="col-12">
@@ -255,9 +265,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     <label class="form-label">No.</label>
                     <input type="number" min="1" max="999" name="tahap[${index}][urutan]" class="form-control" value="${number}" data-tahap-order-input>
                 </div>
-                <div class="col-md-10">
+                <div class="col-md-6">
                     <label class="form-label">Nama Tahap</label>
                     <input type="text" name="tahap[${index}][nama]" class="form-control" placeholder="Contoh: Verifikasi berkas online">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Estimasi Pengerjaan</label>
+                    <input type="text" name="tahap[${index}][estimasi]" class="form-control" placeholder="Contoh: 2 jam / 1 hari kerja">
+                    <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Deskripsi / Cara Kerja</label>

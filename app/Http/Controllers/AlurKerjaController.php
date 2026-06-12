@@ -223,6 +223,7 @@ class AlurKerjaController extends Controller
             'tahap.*.urutan' => ['nullable', 'integer', 'min:1', 'max:999'],
             'tahap.*.nama' => ['nullable', 'string', 'max:255'],
             'tahap.*.deskripsi' => ['nullable', 'string'],
+            'tahap.*.estimasi' => ['nullable', 'string', 'max:100'],
             'tahap.*.aplikasi_digunakan' => ['nullable', 'string'],
             'tahap.*.akun_digunakan' => ['nullable', 'string'],
             'tahap.*.pic_terkait' => ['nullable', 'string'],
@@ -291,6 +292,7 @@ class AlurKerjaController extends Controller
                 'urutan' => $row['urutan'] ?? $nomorFallback,
                 'nama' => $row['nama'],
                 'deskripsi' => $row['deskripsi'] ?? null,
+                'estimasi' => $this->nullableTrimmedString($row['estimasi'] ?? null),
                 'aplikasi_digunakan' => $row['aplikasi_digunakan'] ?? null,
                 'akun_digunakan' => $row['akun_digunakan'] ?? null,
                 'pic_terkait' => $row['pic_terkait'] ?? null,
@@ -429,6 +431,13 @@ class AlurKerjaController extends Controller
             && filled(config('filesystems.disks.r2.endpoint'))
                 ? 'r2'
                 : 'local';
+    }
+
+    private function nullableTrimmedString($value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 
     private function formData(): array

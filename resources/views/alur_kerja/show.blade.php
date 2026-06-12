@@ -126,11 +126,20 @@
                                     <label class="form-label">No.</label>
                                     <input type="number" min="1" max="999" name="urutan" class="form-control" value="{{ old('urutan', $alurKerja->tahaps->count() + 1) }}">
                                 </div>
-                                <div class="col-md-10">
+                                <div class="col-md-6">
                                     <label class="form-label">Nama Tahap <span class="required-mark">*</span></label>
                                     <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required placeholder="Contoh: Pemanggilan verifikasi berkas offline - email">
                                     @error('nama')
                                         <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estimasi Pengerjaan</label>
+                                    <input type="text" name="estimasi" class="form-control @error('estimasi') is-invalid @enderror" value="{{ old('estimasi') }}" placeholder="Contoh: 2 jam / 1 hari kerja">
+                                    @error('estimasi')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @else
+                                        <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                                     @enderror
                                 </div>
                                 <div class="col-12">
@@ -216,6 +225,7 @@
                                 <div>
                                     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                                         <span class="badge bg-primary">Tahap {{ $tahap->urutan }}</span>
+                                        <span class="badge bg-light text-secondary border">Estimasi: {{ $tahap->estimasi_label }}</span>
                                         @if($tahap->lampirans->count())
                                             <span class="badge bg-light text-dark border">{{ $tahap->lampirans->count() }} file/template</span>
                                         @endif
@@ -401,9 +411,18 @@
                                                     <label class="form-label">No.</label>
                                                     <input type="number" min="1" max="999" name="urutan" class="form-control" value="{{ old('urutan', $tahap->urutan) }}">
                                                 </div>
-                                                <div class="col-md-10">
+                                                <div class="col-md-6">
                                                     <label class="form-label">Nama Tahap <span class="required-mark">*</span></label>
                                                     <input type="text" name="nama" class="form-control" value="{{ old('nama', $tahap->nama) }}" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Estimasi Pengerjaan</label>
+                                                    <input type="text" name="estimasi" class="form-control @error('estimasi') is-invalid @enderror" value="{{ old('estimasi', $tahap->estimasi) }}" placeholder="Contoh: 2 jam / 1 hari kerja">
+                                                    @error('estimasi')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @else
+                                                        <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
+                                                    @enderror
                                                 </div>
                                                 <div class="col-12">
                                                     <label class="form-label">Deskripsi / Cara Kerja</label>
