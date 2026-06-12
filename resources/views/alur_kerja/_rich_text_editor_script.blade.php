@@ -983,6 +983,8 @@
                 && textarea.dataset.richText !== 'plain'
                 && (!explicitScope || textarea.dataset.richText === 'editor')
                 && !textarea.closest('[data-rich-text-scope="off"]')
+                && !textarea.classList.contains('select2-search__field')
+                && !textarea.closest('.select2-container, .select2-dropdown, .select2-search')
                 && !textarea.classList.contains('swal2-textarea')
                 && !isSweetAlertElement(textarea);
         }
@@ -1071,7 +1073,9 @@
                 return;
             }
 
-            (root || document).querySelectorAll('textarea:not(.swal2-textarea)').forEach(initTextarea);
+            (root || document)
+                .querySelectorAll('textarea:not(.swal2-textarea):not(.select2-search__field)')
+                .forEach(initTextarea);
         }
 
         document.addEventListener('submit', function (event) {

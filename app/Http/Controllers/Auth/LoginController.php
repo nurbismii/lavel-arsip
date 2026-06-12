@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
+use App\Services\HrisAuthService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
@@ -48,6 +51,48 @@ class LoginController extends Controller
             'password' => $request->get('password'),
             'is_active' => true,
         ];
+    }
+
+    protected function attemptLogin(Request $request)
+    {
+        if ($this->guard()->attempt($this->credentials($request), $request->filled('remember'))) {
+            return true;
+        }
+
+        return $this->attemptHrisLogin($request);
+    }
+
+    private function attemptHrisLogin(Request $request): bool
+    {
+        $email = (string) $request->get($this->username());
+        $localUser = User::where('email', $email)->first();
+
+        if ($localUser && !data_get($localUser, 'is_active', true)) {
+            return false;
+        }
+
+        $hrisAuth = app(HrisAuthService::class);
+        $hrisUser = $hrisAuth->findValidUser($email, (string) $request->get('password'));
+
+        if (!$hrisUser) {
+            return false;
+        }
+
+        $localUser = $localUser ?: new User(['email' => $email]);
+
+        if (!$localUser->exists) {
+            $localUser->name = $hrisAuth->displayName($hrisUser);
+            $localUser->role = User::ROLE_STAFF;
+            $localUser->is_active = true;
+            $localUser->password = Hash::make(Str::random(48));
+        } elseif (blank($localUser->name)) {
+            $localUser->name = $hrisAuth->displayName($hrisUser);
+        }
+
+        $localUser->save();
+        $this->guard()->login($localUser, $request->filled('remember'));
+
+        return true;
     }
 
     protected function sendFailedLoginResponse(Request $request)

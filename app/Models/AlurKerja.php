@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\EstimasiPengerjaan;
 use Illuminate\Database\Eloquent\Model;
 
 class AlurKerja extends Model
@@ -120,11 +121,37 @@ class AlurKerja extends Model
         return $this->estimasi ?: '-';
     }
 
+    public function getMemilikiPemilikCadanganAttribute(): bool
+    {
+        if (array_key_exists('pemilik_cadangans_count', $this->attributes)) {
+            return (int) $this->attributes['pemilik_cadangans_count'] > 0 || filled($this->pemilik_cadangan_user_id);
+        }
+
+        if ($this->relationLoaded('pemilikCadangans')) {
+            return $this->pemilikCadangans->isNotEmpty() || filled($this->pemilik_cadangan_user_id);
+        }
+
+        return $this->pemilikCadangans()->exists() || filled($this->pemilik_cadangan_user_id);
+    }
+
+    public function getPemilikCadanganLabelAttribute(): string
+    {
+        $pemilikCadangans = $this->relationLoaded('pemilikCadangans')
+            ? $this->pemilikCadangans
+            : $this->pemilikCadangans()->get(['users.id', 'users.name']);
+
+        if ($pemilikCadangans->isNotEmpty()) {
+            return $pemilikCadangans->pluck('name')->filter()->implode(', ');
+        }
+
+        return optional($this->pemilikCadangan)->name ?: 'Belum ditetapkan';
+    }
+
     public function getMembutuhkanPerhatianAttribute(): bool
     {
         return in_array($this->risiko, [self::RISIKO_TINGGI, self::RISIKO_KRITIS], true)
             || $this->status_dokumentasi !== self::DOKUMENTASI_LENGKAP
-            || !$this->pemilik_cadangan_user_id;
+            || !$this->memiliki_pemilik_cadangan;
     }
 
     public function team()
@@ -142,6 +169,13 @@ class AlurKerja extends Model
         return $this->belongsTo(User::class, 'pemilik_cadangan_user_id');
     }
 
+    public function pemilikCadangans()
+    {
+        return $this->belongsToMany(User::class, 'alur_kerja_pemilik_cadangan', 'alur_kerja_id', 'user_id')
+            ->withTimestamps()
+            ->orderBy('name');
+    }
+
     public function pekerjaans()
     {
         return $this->hasMany(Pekerjaan::class);
@@ -157,6 +191,17 @@ class AlurKerja extends Model
         return $this->hasMany(SopPengetahuan::class)->latest();
     }
 
+    public function sinkronEstimasiDariTahap(): void
+    {
+        $estimasi = EstimasiPengerjaan::fromTahaps(
+            $this->tahaps()->get(['id', 'estimasi'])
+        );
+
+        $this->forceFill([
+            'estimasi' => $estimasi,
+        ])->save();
+    }
+
     public function scopeVisibleTo($query, User $user)
     {
         if ($user->canAccessAllFiles()) {
@@ -165,7 +210,10 @@ class AlurKerja extends Model
 
         return $query->where(function ($query) use ($user) {
             $query->where('pemilik_utama_user_id', $user->id)
-                ->orWhere('pemilik_cadangan_user_id', $user->id);
+                ->orWhere('pemilik_cadangan_user_id', $user->id)
+                ->orWhereHas('pemilikCadangans', function ($query) use ($user) {
+                    $query->where('users.id', $user->id);
+                });
 
             if ($user->isSupervisor()) {
                 $teamIds = $user->assignedTeamIds();

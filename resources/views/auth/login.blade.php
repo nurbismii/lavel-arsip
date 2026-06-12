@@ -15,6 +15,9 @@
                             'subtitle' => 'Sistem Keberlanjutan Operasional',
                             'align' => 'center',
                         ])
+                        <p class="text-muted small mb-0 mt-2">
+                            Gunakan akun V-Ops atau akun HRIS V-People yang aktif.
+                        </p>
                     </div>
 
                     @if (session('error'))

@@ -27,8 +27,8 @@ class AlurKerjaController extends Controller
 
         $query = AlurKerja::query()
             ->visibleTo(auth()->user())
-            ->with(['team', 'pemilikUtama', 'pemilikCadangan'])
-            ->withCount(['pekerjaans', 'tahaps', 'sopPengetahuans'])
+            ->with(['team', 'pemilikUtama', 'pemilikCadangan', 'pemilikCadangans'])
+            ->withCount(['pekerjaans', 'tahaps', 'sopPengetahuans', 'pemilikCadangans'])
             ->orderBy('nama');
 
         if ($search !== '') {
@@ -73,10 +73,15 @@ class AlurKerjaController extends Controller
     public function store(Request $request)
     {
         $data = $this->validatedData($request);
+        $pemilikCadanganUserIds = $data['pemilik_cadangan_user_ids'];
+        unset($data['pemilik_cadangan_user_ids']);
+
         $tahapAwal = $this->validatedTahapAwal($request);
 
         $alurKerja = AlurKerja::create($data);
+        $alurKerja->pemilikCadangans()->sync($pemilikCadanganUserIds);
         $this->simpanTahapAwal($alurKerja, $tahapAwal, $request->file('tahap_lampiran', []));
+        $alurKerja->sinkronEstimasiDariTahap();
 
         ActivityLogService::log(
             'alur_kerja.create',
@@ -93,7 +98,7 @@ class AlurKerjaController extends Controller
     {
         $this->pastikanAlurKerjaBisaDilihat($alurKerja);
 
-        $alurKerja->load(['team', 'pemilikUtama', 'pemilikCadangan', 'tahaps.lampirans', 'tahaps.sistems', 'tahaps.pics']);
+        $alurKerja->load(['team', 'pemilikUtama', 'pemilikCadangan', 'pemilikCadangans', 'tahaps.lampirans', 'tahaps.sistems', 'tahaps.pics']);
 
         $pekerjaans = $alurKerja->pekerjaans()
             ->visibleTo(auth()->user())
@@ -116,6 +121,7 @@ class AlurKerjaController extends Controller
     public function edit(AlurKerja $alurKerja)
     {
         $this->pastikanAlurKerjaBisaDiatur($alurKerja);
+        $alurKerja->load('pemilikCadangans');
 
         return view('alur_kerja.edit', array_merge($this->formData(), [
             'alurKerja' => $alurKerja,
@@ -127,8 +133,11 @@ class AlurKerjaController extends Controller
         $this->pastikanAlurKerjaBisaDiatur($alurKerja);
 
         $data = $this->validatedData($request, $alurKerja);
+        $pemilikCadanganUserIds = $data['pemilik_cadangan_user_ids'];
+        unset($data['pemilik_cadangan_user_ids']);
 
         $alurKerja->update($data);
+        $alurKerja->pemilikCadangans()->sync($pemilikCadanganUserIds);
 
         ActivityLogService::log(
             'alur_kerja.update',
@@ -160,6 +169,7 @@ class AlurKerjaController extends Controller
 
         $nama = $alurKerja->nama;
         $alurKerja->pekerjaans()->update(['alur_kerja_id' => null]);
+        $alurKerja->pemilikCadangans()->detach();
         $alurKerja->delete();
 
         ActivityLogService::log(
@@ -188,7 +198,10 @@ class AlurKerjaController extends Controller
             'deskripsi' => ['nullable', 'string'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'pemilik_utama_user_id' => ['required', 'integer', 'exists:users,id'],
-            'pemilik_cadangan_user_id' => ['nullable', 'integer', 'exists:users,id', 'different:pemilik_utama_user_id'],
+            'pemilik_cadangan_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'pemilik_cadangan_user_ids' => ['nullable', 'array'],
+            'pemilik_cadangan_user_ids.*' => ['integer', 'exists:users,id', 'distinct'],
+            'cadangan_user_ids_present' => ['nullable'],
             'risiko' => ['required', Rule::in(array_keys(AlurKerja::risikoOptions()))],
             'status_dokumentasi' => ['required', Rule::in(array_keys(AlurKerja::statusDokumentasiOptions()))],
             'status_operasional' => ['sometimes', 'required', Rule::in(array_keys(AlurKerja::statusOperasionalOptions()))],
@@ -197,6 +210,12 @@ class AlurKerjaController extends Controller
         ]);
 
         $data = RichText::sanitizeFields($data, ['deskripsi']);
+        $pemilikCadanganUserIds = $this->normalisasiPemilikCadanganUserIds(
+            $data['pemilik_cadangan_user_ids'] ?? [],
+            $data['pemilik_cadangan_user_id'] ?? null
+        );
+
+        unset($data['pemilik_cadangan_user_ids'], $data['cadangan_user_ids_present']);
 
         if (array_key_exists('estimasi', $data)) {
             $data['estimasi'] = trim((string) $data['estimasi']);
@@ -213,7 +232,36 @@ class AlurKerjaController extends Controller
             $data['pemilik_utama_user_id'] = auth()->id();
         }
 
+        if (in_array((int) $data['pemilik_utama_user_id'], $pemilikCadanganUserIds, true)) {
+            throw ValidationException::withMessages([
+                'pemilik_cadangan_user_ids' => 'Penanggung jawab cadangan tidak boleh sama dengan penanggung jawab utama.',
+            ]);
+        }
+
+        $data['pemilik_cadangan_user_id'] = $pemilikCadanganUserIds[0] ?? null;
+        $data['pemilik_cadangan_user_ids'] = $pemilikCadanganUserIds;
+
         return $data;
+    }
+
+    private function normalisasiPemilikCadanganUserIds($userIds, $legacyUserId = null): array
+    {
+        $userIds = (array) $userIds;
+
+        if (empty($userIds) && filled($legacyUserId)) {
+            $userIds = [$legacyUserId];
+        }
+
+        return collect($userIds)
+            ->map(function ($userId) {
+                return (int) $userId;
+            })
+            ->filter(function ($userId) {
+                return $userId > 0;
+            })
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function validatedTahapAwal(Request $request): array

@@ -119,4 +119,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(SopPengetahuan::class, 'pemilik_user_id');
     }
+
+    public function alurKerjaCadangans()
+    {
+        return $this->belongsToMany(AlurKerja::class, 'alur_kerja_pemilik_cadangan', 'user_id', 'alur_kerja_id')
+            ->withTimestamps();
+    }
 }

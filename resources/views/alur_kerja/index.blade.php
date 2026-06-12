@@ -87,7 +87,7 @@
                                     </h6>
                                     <small class="text-muted d-block">Unit: {{ optional($alurKerja->team)->name ?: '-' }}</small>
                                     <small class="text-muted d-block">PIC utama: {{ optional($alurKerja->pemilikUtama)->name ?: '-' }}</small>
-                                    <small class="text-muted d-block">Cadangan: {{ optional($alurKerja->pemilikCadangan)->name ?: 'Belum ditetapkan' }}</small>
+                                    <small class="text-muted d-block">Cadangan: {{ $alurKerja->pemilik_cadangan_label }}</small>
                                 </div>
                                 @if($alurKerja->membutuhkan_perhatian)
                                     <span class="badge bg-danger">Perhatian</span>

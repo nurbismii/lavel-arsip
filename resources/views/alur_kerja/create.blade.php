@@ -104,7 +104,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Estimasi Pengerjaan</label>
-                                    <input type="text" name="tahap[{{ $index }}][estimasi]" class="form-control @error('tahap.' . $index . '.estimasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.estimasi', data_get($tahap, 'estimasi')) }}" placeholder="Contoh: 2 jam / 1 hari kerja">
+                                    <input type="text" name="tahap[{{ $index }}][estimasi]" class="form-control @error('tahap.' . $index . '.estimasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.estimasi', data_get($tahap, 'estimasi')) }}" placeholder="Contoh: 2 jam / 1 hari kerja" data-stage-estimate-input>
                                     @error('tahap.' . $index . '.estimasi')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
@@ -195,6 +195,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const rows = document.getElementById('tahap-rows');
     const addButtons = document.querySelectorAll('[data-add-tahap-row]');
+    const totalEstimateInput = document.querySelector('[data-workflow-total-estimate]');
 
     if (!rows || !addButtons.length) {
         return;
@@ -220,6 +221,95 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function estimateUnitMultiplier(unit) {
+        unit = String(unit || '').toLowerCase();
+
+        if (['menit', 'mnt', 'min', 'm'].includes(unit)) {
+            return 1;
+        }
+
+        if (unit === 'jam') {
+            return 60;
+        }
+
+        if (['hari kerja', 'hk', 'hari', 'hr'].includes(unit)) {
+            return 480;
+        }
+
+        if (['minggu', 'pekan'].includes(unit)) {
+            return 2400;
+        }
+
+        if (unit === 'bulan') {
+            return 9600;
+        }
+
+        return null;
+    }
+
+    function parseEstimateMinutes(value) {
+        value = String(value || '').trim().toLowerCase().replace(/,/g, '.');
+
+        if (!value) {
+            return null;
+        }
+
+        const pattern = /(\d+(?:\.\d+)?)\s*(?:-|s\/d|sd|sampai)?\s*(\d+(?:\.\d+)?)?\s*(hari kerja|hk|menit|mnt|min|jam|hari|hr|minggu|pekan|bulan|m)\b/gu;
+        let match;
+        let total = 0;
+
+        while ((match = pattern.exec(value)) !== null) {
+            const amount = match[2] ? parseFloat(match[2]) : parseFloat(match[1]);
+            const multiplier = estimateUnitMultiplier(match[3]);
+
+            if (!Number.isFinite(amount) || !multiplier) {
+                continue;
+            }
+
+            total += Math.round(amount * multiplier);
+        }
+
+        return total > 0 ? total : null;
+    }
+
+    function formatEstimateMinutes(minutes) {
+        const dayMinutes = 480;
+        const days = Math.floor(minutes / dayMinutes);
+        let remaining = minutes % dayMinutes;
+        const hours = Math.floor(remaining / 60);
+        remaining = remaining % 60;
+        const parts = [];
+
+        if (days > 0) {
+            parts.push(days + ' hari kerja');
+        }
+
+        if (hours > 0) {
+            parts.push(hours + ' jam');
+        }
+
+        if (remaining > 0 || !parts.length) {
+            parts.push(remaining + ' menit');
+        }
+
+        return parts.join(' ');
+    }
+
+    function updateWorkflowTotalEstimate() {
+        if (!totalEstimateInput) {
+            return;
+        }
+
+        const totalMinutes = Array.from(rows.querySelectorAll('[data-stage-estimate-input]'))
+            .reduce(function (total, input) {
+                const minutes = parseEstimateMinutes(input.value);
+
+                return total + (minutes || 0);
+            }, 0);
+
+        totalEstimateInput.value = totalMinutes > 0 ? formatEstimateMinutes(totalMinutes) : '';
+    }
+
     function bindRemoveButtons() {
         rows.querySelectorAll('.remove-tahap-row').forEach(function (button) {
             button.onclick = function () {
@@ -237,11 +327,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         field.value = '';
                     });
                     updateTahapOrder();
+                    updateWorkflowTotalEstimate();
                     return;
                 }
 
                 button.closest('.tahap-row').remove();
                 updateTahapOrder();
+                updateWorkflowTotalEstimate();
             };
         });
     }
@@ -271,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Estimasi Pengerjaan</label>
-                    <input type="text" name="tahap[${index}][estimasi]" class="form-control" placeholder="Contoh: 2 jam / 1 hari kerja">
+                    <input type="text" name="tahap[${index}][estimasi]" class="form-control" placeholder="Contoh: 2 jam / 1 hari kerja" data-stage-estimate-input>
                     <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                 </div>
                 <div class="col-12">
@@ -399,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         bindRemoveButtons();
         updateTahapOrder();
+        updateWorkflowTotalEstimate();
         wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -478,8 +571,15 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', addTahapRow);
     });
 
+    rows.addEventListener('input', function (event) {
+        if (event.target.matches('[data-stage-estimate-input]')) {
+            updateWorkflowTotalEstimate();
+        }
+    });
+
     bindRemoveButtons();
     updateTahapOrder();
+    updateWorkflowTotalEstimate();
 });
 </script>
 @include('alur_kerja._selected_file_script')

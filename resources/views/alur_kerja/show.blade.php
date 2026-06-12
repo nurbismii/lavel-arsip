@@ -90,7 +90,7 @@
                     </div>
                     <div class="mb-2">
                         <small class="text-muted d-block">Penanggung jawab cadangan</small>
-                        <div class="fw-semibold">{{ optional($alurKerja->pemilikCadangan)->name ?: 'Belum ditetapkan' }}</div>
+                        <div class="fw-semibold">{{ $alurKerja->pemilik_cadangan_label }}</div>
                     </div>
                     <div>
                         <small class="text-muted d-block">Estimasi pengerjaan</small>

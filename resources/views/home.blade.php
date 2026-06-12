@@ -105,7 +105,7 @@
                                         Unit: {{ optional($alurKerja->team)->name ?: '-' }}
                                     </small>
                                     <small class="text-muted d-block">
-                                        Cadangan: {{ optional($alurKerja->pemilikCadangan)->name ?: 'Belum ditetapkan' }}
+                                        Cadangan: {{ $alurKerja->pemilik_cadangan_label }}
                                     </small>
                                 </div>
                             </div>

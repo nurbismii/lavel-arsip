@@ -30,4 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'hris_auth' => [
+        'connection' => env('HRIS_AUTH_CONNECTION', 'hris'),
+        'users_table' => env('HRIS_USERS_TABLE', 'users'),
+    ],
+
 ];

@@ -61,18 +61,19 @@ class HomeController extends Controller
             [
                 'label' => 'Tanpa Cadangan',
                 'value' => (clone $alurKerjaQuery)
-                    ->whereNull('pemilik_cadangan_user_id')
+                    ->doesntHave('pemilikCadangans')
                     ->count(),
                 'class' => 'bg-dark',
             ],
         ];
 
         $opsAttentionItems = (clone $alurKerjaQuery)
-            ->with(['team', 'pemilikUtama', 'pemilikCadangan'])
+            ->with(['team', 'pemilikUtama', 'pemilikCadangan', 'pemilikCadangans'])
+            ->withCount('pemilikCadangans')
             ->where(function ($query) {
                 $query->whereIn('risiko', [AlurKerja::RISIKO_TINGGI, AlurKerja::RISIKO_KRITIS])
                     ->orWhereIn('status_dokumentasi', [AlurKerja::DOKUMENTASI_BELUM_LENGKAP, AlurKerja::DOKUMENTASI_PERLU_UPDATE])
-                    ->orWhereNull('pemilik_cadangan_user_id');
+                    ->orWhereDoesntHave('pemilikCadangans');
             })
             ->latest()
             ->limit(5)

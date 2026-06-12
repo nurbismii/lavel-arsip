@@ -26,6 +26,7 @@ class AlurKerjaTahapController extends Controller
         $this->simpanSistemTahap($tahap, $sistemRows);
         $this->simpanPicTahap($tahap, $picRows);
         $this->simpanLampiran($alurKerja, $tahap, $request->file('lampiran', []));
+        $alurKerja->sinkronEstimasiDariTahap();
 
         ActivityLogService::log(
             'alur_kerja.tahap.create',
@@ -53,6 +54,7 @@ class AlurKerjaTahapController extends Controller
         $this->simpanSistemTahap($tahap, $sistemRows);
         $this->simpanPicTahap($tahap, $picRows);
         $this->simpanLampiran($alurKerja, $tahap, $request->file('lampiran', []));
+        $alurKerja->sinkronEstimasiDariTahap();
 
         ActivityLogService::log(
             'alur_kerja.tahap.update',
@@ -80,6 +82,7 @@ class AlurKerjaTahapController extends Controller
         $tahap->sistems()->delete();
         $tahap->pics()->delete();
         $tahap->delete();
+        $alurKerja->sinkronEstimasiDariTahap();
 
         ActivityLogService::log(
             'alur_kerja.tahap.delete',
