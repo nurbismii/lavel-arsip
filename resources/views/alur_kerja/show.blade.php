@@ -41,7 +41,6 @@
                 @endif
                 <span class="badge {{ $alurKerja->risiko_badge_class }}">{{ $alurKerja->risiko_label }}</span>
                 <span class="badge {{ $alurKerja->status_dokumentasi_badge_class }}">{{ $alurKerja->status_dokumentasi_label }}</span>
-                <span class="badge {{ $alurKerja->status_operasional_badge_class }}">{{ $alurKerja->status_operasional_label }}</span>
             </div>
             <h4 class="app-page-title">{{ $alurKerja->nama }}</h4>
             <p class="app-page-subtitle">Dokumentasi operasional berisi tahapan, PIC, aplikasi, akun, file/template, dan dokumen terkait.</p>

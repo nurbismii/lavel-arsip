@@ -19,7 +19,7 @@
 
     <form method="GET" action="{{ route('alur-kerja.index') }}" class="filter-panel" data-loading-form>
         <div class="row g-3 align-items-end">
-            <div class="col-12 col-lg-4">
+            <div class="col-12 col-lg-6">
                 <label class="form-label">Pencarian</label>
                 <input
                     type="text"
@@ -46,15 +46,6 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-12 col-md-4 col-lg-2">
-                <label class="form-label">Operasional</label>
-                <select name="status_operasional" class="form-select">
-                    <option value="">Semua Operasional</option>
-                    @foreach($statusOperasionalOptions as $value => $label)
-                        <option value="{{ $value }}" {{ $statusOperasional === $value ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
             <div class="col-6 col-lg-1">
                 <button type="submit" class="btn btn-primary w-100" data-loading-text="Memfilter...">Filter</button>
             </div>
@@ -78,7 +69,6 @@
                                         @endif
                                         <span class="badge {{ $alurKerja->risiko_badge_class }}">{{ $alurKerja->risiko_label }}</span>
                                         <span class="badge {{ $alurKerja->status_dokumentasi_badge_class }}">{{ $alurKerja->status_dokumentasi_label }}</span>
-                                        <span class="badge {{ $alurKerja->status_operasional_badge_class }}">{{ $alurKerja->status_operasional_label }}</span>
                                     </div>
                                     <h6 class="fw-bold mb-1">
                                         <a href="{{ route('alur-kerja.show', $alurKerja->id) }}" class="text-decoration-none">

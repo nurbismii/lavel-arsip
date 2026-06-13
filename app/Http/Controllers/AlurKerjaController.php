@@ -23,7 +23,6 @@ class AlurKerjaController extends Controller
         $search = trim((string) request('search', ''));
         $risiko = $this->resolveFilter(request('risiko'), AlurKerja::risikoOptions());
         $statusDokumentasi = $this->resolveFilter(request('status_dokumentasi'), AlurKerja::statusDokumentasiOptions());
-        $statusOperasional = $this->resolveFilter(request('status_operasional'), AlurKerja::statusOperasionalOptions());
 
         $query = AlurKerja::query()
             ->visibleTo(auth()->user())
@@ -47,21 +46,17 @@ class AlurKerjaController extends Controller
             $query->where('status_dokumentasi', $statusDokumentasi);
         }
 
-        if ($statusOperasional !== '') {
-            $query->where('status_operasional', $statusOperasional);
-        }
-
-        $alurKerjas = $query->paginate(10)->withQueryString();
+        $alurKerjas = $query
+            ->paginate(10)
+            ->appends(request()->except(['status_operasional', 'page']));
 
         return view('alur_kerja.index', [
             'alurKerjas' => $alurKerjas,
             'search' => $search,
             'risiko' => $risiko,
             'statusDokumentasi' => $statusDokumentasi,
-            'statusOperasional' => $statusOperasional,
             'risikoOptions' => AlurKerja::risikoOptions(),
             'statusDokumentasiOptions' => AlurKerja::statusDokumentasiOptions(),
-            'statusOperasionalOptions' => AlurKerja::statusOperasionalOptions(),
         ]);
     }
 
@@ -204,7 +199,6 @@ class AlurKerjaController extends Controller
             'cadangan_user_ids_present' => ['nullable'],
             'risiko' => ['required', Rule::in(array_keys(AlurKerja::risikoOptions()))],
             'status_dokumentasi' => ['required', Rule::in(array_keys(AlurKerja::statusDokumentasiOptions()))],
-            'status_operasional' => ['sometimes', 'required', Rule::in(array_keys(AlurKerja::statusOperasionalOptions()))],
             'target_tinjauan_berikutnya' => ['sometimes', 'nullable', 'date'],
             'estimasi' => ['nullable', 'string', 'max:100'],
         ]);
@@ -498,7 +492,6 @@ class AlurKerjaController extends Controller
                 ->get(['id', 'name', 'email']),
             'risikoOptions' => AlurKerja::risikoOptions(),
             'statusDokumentasiOptions' => AlurKerja::statusDokumentasiOptions(),
-            'statusOperasionalOptions' => AlurKerja::statusOperasionalOptions(),
         ];
     }
 
