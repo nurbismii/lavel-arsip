@@ -34,6 +34,9 @@ class LoginController extends Controller
      */
     protected $redirectTo = RouteServiceProvider::HOME;
 
+    private const LOGIN_SOURCE_HRIS = 'hris';
+    private const LOGIN_SOURCE_LOCAL = 'local';
+
     /**
      * Create a new controller instance.
      *
@@ -42,6 +45,17 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    protected function validateLogin(Request $request)
+    {
+        $request->validate([
+            $this->username() => 'required|string',
+            'password' => 'required|string',
+            'login_source' => 'nullable|in:' . self::LOGIN_SOURCE_HRIS . ',' . self::LOGIN_SOURCE_LOCAL,
+        ], [
+            'login_source.in' => 'Metode login tidak valid. Silakan pilih HRIS V-People atau akun V-Ops.',
+        ]);
     }
 
     protected function credentials(Request $request)
@@ -55,6 +69,16 @@ class LoginController extends Controller
 
     protected function attemptLogin(Request $request)
     {
+        $loginSource = (string) $request->get('login_source');
+
+        if ($loginSource === self::LOGIN_SOURCE_LOCAL) {
+            return $this->guard()->attempt($this->credentials($request), $request->filled('remember'));
+        }
+
+        if ($loginSource === self::LOGIN_SOURCE_HRIS) {
+            return $this->attemptHrisLogin($request);
+        }
+
         if ($this->guard()->attempt($this->credentials($request), $request->filled('remember'))) {
             return true;
         }
@@ -102,6 +126,20 @@ class LoginController extends Controller
         if ($user && !$user->is_active) {
             throw ValidationException::withMessages([
                 $this->username() => ['Akun Anda sedang dinonaktifkan. Silakan hubungi admin.'],
+            ]);
+        }
+
+        $loginSource = (string) $request->get('login_source');
+
+        if ($loginSource === self::LOGIN_SOURCE_HRIS) {
+            throw ValidationException::withMessages([
+                $this->username() => ['Email atau password HRIS V-People tidak sesuai, atau akun HRIS belum aktif.'],
+            ]);
+        }
+
+        if ($loginSource === self::LOGIN_SOURCE_LOCAL) {
+            throw ValidationException::withMessages([
+                $this->username() => ['Email atau password akun V-Ops tidak sesuai. Pastikan akun lokal sudah dibuat atau pilih login HRIS V-People.'],
             ]);
         }
 
