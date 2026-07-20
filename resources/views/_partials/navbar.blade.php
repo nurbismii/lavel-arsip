@@ -19,6 +19,7 @@
             <div class="ms-lg-4 mt-3 mt-lg-0 me-auto">
                 @php
                     $kelolaDokumenActive = request()->is('pekerjaan*') || request()->is('lokasi-dokumen*');
+                    $prosesKerjaActive = request()->is('alur-kerja*') || request()->is('sop-pengetahuan*') || request()->is('jobdesc*');
                 @endphp
 
                 <ul class="navbar-nav flex-column flex-lg-row gap-2">
@@ -29,18 +30,29 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link px-3 py-2 rounded-pill {{ request()->is('alur-kerja*') ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
-                            href="{{ route('alur-kerja.index') }}">
-                            Alur Kerja
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-3 py-2 rounded-pill {{ $prosesKerjaActive ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
+                            href="#"
+                            id="prosesKerjaDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Proses Kerja
                         </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link px-3 py-2 rounded-pill {{ request()->is('sop-pengetahuan*') ? 'active fw-semibold bg-primary text-white' : 'text-dark bg-light' }}"
-                            href="{{ route('sop-pengetahuan.index') }}">
-                            SOP
-                        </a>
+                        <div class="dropdown-menu shadow-sm border-0 rounded-3 mt-2" aria-labelledby="prosesKerjaDropdown">
+                            <a class="dropdown-item {{ request()->is('alur-kerja*') ? 'active' : '' }}"
+                                href="{{ route('alur-kerja.index') }}">
+                                Alur Kerja
+                            </a>
+                            <a class="dropdown-item {{ request()->is('sop-pengetahuan*') ? 'active' : '' }}"
+                                href="{{ route('sop-pengetahuan.index') }}">
+                                SOP
+                            </a>
+                            <a class="dropdown-item {{ request()->is('jobdesc*') ? 'active' : '' }}"
+                                href="{{ route('jobdesc.index') }}">
+                                Jobdesc
+                            </a>
+                        </div>
                     </li>
 
                     <li class="nav-item dropdown">

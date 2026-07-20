@@ -5,6 +5,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AlurKerjaController;
 use App\Http\Controllers\AlurKerjaTahapController;
 use App\Http\Controllers\LokasiDokumenController;
+use App\Http\Controllers\JobdescController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SopPengetahuanController;
 use App\Http\Controllers\TeamController;
@@ -47,6 +48,7 @@ Route::middleware('check.login')->group(function () {
     Route::get('/sop-pengetahuan/{sopPengetahuan}/lampiran/{lampiran}', [SopPengetahuanController::class, 'showLampiran'])->name('sop-pengetahuan.lampiran.show');
     Route::delete('/sop-pengetahuan/{sopPengetahuan}/lampiran/{lampiran}', [SopPengetahuanController::class, 'destroyLampiran'])->name('sop-pengetahuan.lampiran.destroy');
     Route::resource('sop-pengetahuan', SopPengetahuanController::class);
+    Route::resource('jobdesc', JobdescController::class);
     Route::resource('pekerjaan', PekerjaanController::class);
     Route::get('/lokasi-dokumen', [LokasiDokumenController::class, 'index'])->name('lokasi-dokumen.index');
     Route::get('/lokasi-dokumen/create', [LokasiDokumenController::class, 'create'])->name('lokasi-dokumen.create');
