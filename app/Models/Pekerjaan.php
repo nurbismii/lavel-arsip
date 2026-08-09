@@ -9,6 +9,7 @@ class Pekerjaan extends Model
     protected $table = 'pekerjaan';
     protected $fillable = [
         'judul',
+        'deskripsi',
         'parent_id',
         'user_id',
         'lokasi_id',

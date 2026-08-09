@@ -117,6 +117,42 @@
         font-size: 0.82rem;
     }
 
+    .tree-description-toggle {
+        margin: 0.45rem 0 0.2rem 2.45rem;
+        padding: 0;
+        color: #475569;
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+
+    .tree-description-toggle:hover,
+    .tree-description-toggle:focus {
+        color: #1d4ed8;
+    }
+
+    .tree-description-toggle .tree-description-hide-label,
+    .tree-description-toggle:not(.collapsed) .tree-description-show-label {
+        display: none;
+    }
+
+    .tree-description-toggle:not(.collapsed) .tree-description-hide-label {
+        display: inline;
+    }
+
+    .tree-description {
+        margin: 0.25rem 0 0.35rem 2.45rem;
+        max-width: 56rem;
+        color: #475569;
+        font-size: 0.875rem;
+        line-height: 1.55;
+        white-space: pre-line;
+    }
+
+    .tree-description-label {
+        color: #334155;
+        font-weight: 600;
+    }
+
     .tree-loading {
         margin-left: 1rem;
     }

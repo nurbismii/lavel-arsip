@@ -3,6 +3,7 @@
 @php($documentsCount = $item->dokumens_count ?? 0)
 @php($hasNestedContent = $childrenCount > 0 || $documentsCount > 0)
 @php($collapseId = 'folder-content-' . $item->id)
+@php($descriptionCollapseId = 'folder-description-' . $item->id)
 @php($canManage = auth()->check() && (auth()->user()->canAccessAllFiles() || (int) $item->user_id === (int) auth()->id()))
 @php($statusDokumen = $statusDokumen ?? '')
 @php($treeContentParams = ['pekerjaan' => $item->id])
@@ -34,6 +35,24 @@
                     <strong>{{ $item->judul }}</strong>
                 </div>
             </div>
+
+            @if(filled($item->deskripsi))
+            <button type="button"
+                class="btn btn-sm btn-link text-decoration-none tree-description-toggle collapsed"
+                data-bs-toggle="collapse"
+                data-bs-target="#{{ $descriptionCollapseId }}"
+                aria-expanded="false"
+                aria-controls="{{ $descriptionCollapseId }}">
+                <span class="tree-description-show-label">Lihat deskripsi / kronologi</span>
+                <span class="tree-description-hide-label">Sembunyikan deskripsi / kronologi</span>
+            </button>
+            <div id="{{ $descriptionCollapseId }}" class="collapse">
+                <div class="tree-description">
+                    <span class="tree-description-label">Deskripsi / Kronologi:</span>
+                    {{ $item->deskripsi }}
+                </div>
+            </div>
+            @endif
 
             <small class="text-muted d-block ms-4 ps-1 tree-meta">
                 Folder dibuat: {{ optional($item->user)->name ?: '-' }} - {{ $item->tanggal_dibuat }}

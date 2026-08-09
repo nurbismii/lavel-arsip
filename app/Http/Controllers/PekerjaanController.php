@@ -258,6 +258,7 @@ class PekerjaanController extends Controller
     {
         $data = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
             'parent_id' => ['nullable', 'integer', 'exists:pekerjaan,id'],
             'lokasi_id' => ['required', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
@@ -269,6 +270,8 @@ class PekerjaanController extends Controller
             'dokumen.*' => ['nullable', 'file', 'max:20480'],
             'sub_judul' => ['nullable', 'array'],
             'sub_judul.*' => ['nullable', 'string', 'max:255'],
+            'sub_deskripsi' => ['nullable', 'array'],
+            'sub_deskripsi.*' => ['nullable', 'string'],
             'sub_status_dokumen' => ['nullable', 'array'],
             'sub_status_dokumen.*' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
             'sub_dokumen' => ['nullable', 'array'],
@@ -308,6 +311,7 @@ class PekerjaanController extends Controller
 
         $pekerjaan = Pekerjaan::create([
             'judul' => $data['judul'],
+            'deskripsi' => $data['deskripsi'] ?? null,
             'parent_id' => $data['parent_id'] ?? null,
             'user_id' => auth()->id(),
             'lokasi_id' => $data['lokasi_id'] ?? null,
@@ -334,6 +338,7 @@ class PekerjaanController extends Controller
 
                 $sub = Pekerjaan::create([
                     'judul' => $judulSub,
+                    'deskripsi' => $data['sub_deskripsi'][$i] ?? null,
                     'parent_id' => $pekerjaan->id,
                     'user_id' => auth()->id(),
                     'lokasi_id' => $data['lokasi_id'] ?? null,
@@ -387,6 +392,7 @@ class PekerjaanController extends Controller
 
         $data = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
             'parent_id' => ['nullable', 'integer', 'exists:pekerjaan,id', Rule::notIn([$pekerjaan->id])],
             'lokasi_id' => ['nullable', 'integer', 'exists:lokasi_dokumen,id'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
@@ -430,6 +436,7 @@ class PekerjaanController extends Controller
 
         $pekerjaan->update([
             'judul' => $data['judul'],
+            'deskripsi' => $data['deskripsi'] ?? null,
             'parent_id' => $data['parent_id'] ?? null,
             'lokasi_id' => $data['lokasi_id'] ?? null,
             'team_id' => $teamId,

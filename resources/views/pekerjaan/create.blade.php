@@ -38,6 +38,12 @@
                     <input type="text" name="judul" class="form-control" value="{{ old('judul') }}" required>
                 </div>
 
+                <div class="mb-3">
+                    <label for="deskripsi">Deskripsi / Kronologi <span class="text-muted small">(opsional)</span></label>
+                    <textarea id="deskripsi" name="deskripsi" rows="4" class="form-control" placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini.">{{ old('deskripsi') }}</textarea>
+                    <small class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
+                </div>
+
                 {{-- Parent --}}
                 <div class="mb-3">
                     <label>Induk</label>
@@ -285,6 +291,9 @@
             </button>
 
             <input type="text" name="sub_judul[]" class="form-control mb-2" placeholder="Judul Sub">
+
+            <label class="form-label small text-muted mb-1">Deskripsi / Kronologi <span class="text-muted">(opsional)</span></label>
+            <textarea name="sub_deskripsi[${subIndex}]" rows="3" class="form-control mb-2" placeholder="Jelaskan konteks atau kronologi sub dokumen ini."></textarea>
 
             <small class="text-muted d-block mb-2">
                 Lokasi sub pekerjaan akan mengikuti lokasi pekerjaan utama saat disimpan.

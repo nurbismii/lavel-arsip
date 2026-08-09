@@ -38,6 +38,12 @@
         </div>
 
         <div class="mb-3">
+            <label for="deskripsi">Deskripsi / Kronologi <span class="text-muted small">(opsional)</span></label>
+            <textarea id="deskripsi" name="deskripsi" rows="4" class="form-control" placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini.">{{ old('deskripsi', $pekerjaan->deskripsi) }}</textarea>
+            <small class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
+        </div>
+
+        <div class="mb-3">
             <label>Parent</label>
             <select name="parent_id" class="form-control" data-parent-select>
                 <option value="">-- Utama --</option>

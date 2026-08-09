@@ -52,7 +52,44 @@
         @if(filled($jobdesc->lingkungan_kerja))
             <div class="app-card p-3 p-md-4 mb-4"><h5>IX. Lingkungan Kerja</h5><div class="text-pre-line">{!! nl2br(e($jobdesc->lingkungan_kerja)) !!}</div></div>
         @endif
-        @if(!empty($jobdesc->spesifikasi_pekerjaan))<div class="app-card p-3 p-md-4 mb-4"><h5>X. Spesifikasi Pekerjaan</h5><p><strong>Umur:</strong> {{ data_get($jobdesc->spesifikasi_pekerjaan,'umur') ?: '-' }} &nbsp; <strong>Jenis kelamin:</strong> {{ implode(', ', (array) data_get($jobdesc->spesifikasi_pekerjaan,'jenis_kelamin', [])) ?: '-' }}</p>@if(!empty(data_get($jobdesc->spesifikasi_pekerjaan,'pendidikan')))<strong>Pendidikan</strong><ul>@foreach(data_get($jobdesc->spesifikasi_pekerjaan,'pendidikan') as $item)<li>{{ data_get($item,'jenjang') }}{{ data_get($item,'jurusan') ? ' - '.data_get($item,'jurusan') : '' }}</li>@endforeach</ul>@endif</div>@endif
+        @if(!empty($jobdesc->spesifikasi_pekerjaan))
+            @php($spesifikasi = $jobdesc->spesifikasi_pekerjaan)
+            <div class="app-card p-3 p-md-4 mb-4">
+                <h5>X. Spesifikasi Pekerjaan</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4"><strong>Umur</strong><div>{{ data_get($spesifikasi, 'umur') ?: '-' }}</div></div>
+                    <div class="col-md-4"><strong>Jenis Kelamin</strong><div>{{ implode(', ', (array) data_get($spesifikasi, 'jenis_kelamin', [])) ?: '-' }}</div></div>
+                    <div class="col-md-4"><strong>Pengalaman Kerja</strong><div>{{ implode(', ', (array) data_get($spesifikasi, 'pengalaman', [])) ?: '-' }}</div></div>
+                </div>
+
+                <h6>Pendidikan</h6>
+                @if(!empty(data_get($spesifikasi, 'pendidikan')))
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead><tr><th>Jenjang Pendidikan</th><th>Jurusan</th></tr></thead>
+                            <tbody>
+                                @foreach(data_get($spesifikasi, 'pendidikan') as $item)
+                                    <tr><td>{{ data_get($item, 'jenjang') ?: '-' }}</td><td>{{ data_get($item, 'jurusan') ?: '-' }}</td></tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted mb-4">Pendidikan dan jurusan belum diisi.</p>
+                @endif
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6>Kompetensi Teknis</h6>
+                        <div class="text-pre-line">{!! nl2br(e(data_get($spesifikasi, 'kompetensi_teknis') ?: '-')) !!}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Kompetensi Manajerial</h6>
+                        <div class="text-pre-line">{!! nl2br(e(data_get($spesifikasi, 'kompetensi_manajerial') ?: '-')) !!}</div>
+                    </div>
+                </div>
+            </div>
+        @endif
         @if(!empty($jobdesc->catatan_revisi))
             <div class="app-card p-3 p-md-4 mb-4"><h5>XI. Catatan Revisi</h5><div class="table-responsive"><table class="table table-bordered align-middle mb-0"><thead><tr><th>No.</th><th>Tanggal</th><th>Deskripsi Perubahan</th><th>Alasan Revisi</th><th>Pihak yang Merevisi</th></tr></thead><tbody>
                 @foreach($jobdesc->catatan_revisi as $revisi)
