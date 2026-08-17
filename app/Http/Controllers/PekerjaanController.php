@@ -10,7 +10,9 @@ use App\Models\DokumenBuktiPenyelesaian;
 use App\Models\Lokasi;
 use App\Models\Team;
 use App\Models\User;
+use App\Rules\MeaningfulRichText;
 use App\Services\ActivityLogService;
+use App\Support\RichText;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -279,6 +281,8 @@ class PekerjaanController extends Controller
             'sub_dokumen.*.*' => ['nullable', 'file', 'max:20480'],
         ]);
 
+        $data['deskripsi'] = RichText::sanitizeDocument($data['deskripsi'] ?? null);
+
         if ($this->requestHasUploads($request)) {
             try {
                 $this->ensureR2Configured();
@@ -338,7 +342,7 @@ class PekerjaanController extends Controller
 
                 $sub = Pekerjaan::create([
                     'judul' => $judulSub,
-                    'deskripsi' => $data['sub_deskripsi'][$i] ?? null,
+                    'deskripsi' => RichText::sanitizeDocument($data['sub_deskripsi'][$i] ?? null),
                     'parent_id' => $pekerjaan->id,
                     'user_id' => auth()->id(),
                     'lokasi_id' => $data['lokasi_id'] ?? null,
@@ -403,6 +407,8 @@ class PekerjaanController extends Controller
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
             'dokumen.*' => ['nullable', 'file', 'max:20480'],
         ]);
+
+        $data['deskripsi'] = RichText::sanitizeDocument($data['deskripsi'] ?? null);
 
         if ($this->requestHasUploads($request)) {
             try {
@@ -489,7 +495,7 @@ class PekerjaanController extends Controller
     {
         $this->pastikanPekerjaanBisaDiatur($pekerjaan);
 
-        if ($dokumen->pekerjaan_id !== $pekerjaan->id) {
+        if ((int) $dokumen->pekerjaan_id !== (int) $pekerjaan->id) {
             abort(404);
         }
 
@@ -509,8 +515,7 @@ class PekerjaanController extends Controller
             ],
             'keterangan_penyelesaian' => [
                 $status === Dokumen::STATUS_ARSIP ? 'required' : 'nullable',
-                'string',
-                'max:1000',
+                new MeaningfulRichText(1000, $status === Dokumen::STATUS_ARSIP),
             ],
             'peminjam_user_id' => [
                 $status === Dokumen::STATUS_AKTIF ? 'required' : 'nullable',
@@ -536,7 +541,7 @@ class PekerjaanController extends Controller
         ];
 
         if ($data['status_dokumen'] === Dokumen::STATUS_ARSIP) {
-            $updates['keterangan_penyelesaian'] = $data['keterangan_penyelesaian'];
+            $updates['keterangan_penyelesaian'] = RichText::sanitizeDocument($data['keterangan_penyelesaian']);
             $updates['diselesaikan_pada'] = $dokumen->diselesaikan_pada ?: now();
         } else {
             $updates['diselesaikan_pada'] = null;
