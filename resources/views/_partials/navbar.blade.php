@@ -46,11 +46,11 @@
                             </a>
                             <a class="dropdown-item {{ request()->is('sop-pengetahuan*') ? 'active' : '' }}"
                                 href="{{ route('sop-pengetahuan.index') }}">
-                                SOP
+                                Standar Operasional Prosedur
                             </a>
                             <a class="dropdown-item {{ request()->is('jobdesc*') ? 'active' : '' }}"
                                 href="{{ route('jobdesc.index') }}">
-                                Jobdesc
+                                Job Description
                             </a>
                         </div>
                     </li>
@@ -67,7 +67,7 @@
                         <div class="dropdown-menu shadow-sm border-0 rounded-3 mt-2" aria-labelledby="kelolaDokumenDropdown">
                             <a class="dropdown-item {{ request()->is('pekerjaan*') ? 'active' : '' }}"
                                 href="{{ route('pekerjaan.index') }}">
-                                Dokumen Operasional
+                                Dokumen Pekerjaan
                             </a>
                             <a class="dropdown-item {{ request()->is('lokasi-dokumen*') ? 'active' : '' }}"
                                 href="{{ route('lokasi-dokumen.index') }}">
