@@ -187,6 +187,7 @@
                 <div class="mb-3">
                     <label>Dokumen</label>
                     <input type="file" id="dokumen-input" multiple class="form-control">
+                    <small class="text-muted d-block mt-1">Maksimal 10 MB per file.</small>
 
                     <div class="mt-2">
                         <label class="form-label">Status Awal Dokumen Utama</label>
@@ -323,8 +324,9 @@
                 @endforeach
             </select>
 
-            <input type="file" multiple class="form-control mb-2"
+            <input type="file" multiple class="form-control"
                 onchange="handleSubFile(this, ${subIndex})">
+            <small class="text-muted d-block mt-1 mb-2">Maksimal 10 MB per file.</small>
 
             <div id="sub-hidden-${subIndex}"></div>
 

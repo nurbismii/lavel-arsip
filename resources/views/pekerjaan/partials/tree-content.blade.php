@@ -115,7 +115,7 @@
                                 multiple
                                 {{ $doc->status_dokumen === \App\Models\Dokumen::STATUS_ARSIP && !$doc->buktiPenyelesaians->count() && !$doc->bukti_penyelesaian_path ? 'required' : '' }}>
                             <small class="text-muted d-block mt-1">
-                                Bisa pilih lebih dari satu file. Upload baru akan ditambahkan ke daftar bukti.
+                                Bisa pilih lebih dari satu file. Maksimal 10 MB per file. Upload baru akan ditambahkan ke daftar bukti.
                             </small>
                             @if($doc->buktiPenyelesaians->count())
                                 <div class="mt-1">

@@ -6,6 +6,7 @@ use App\Models\Dokumen;
 use App\Models\Pekerjaan;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -20,6 +21,14 @@ class PekerjaanRichTextControllerTest extends TestCase
             'database.default' => 'sqlite',
             'database.connections.sqlite.database' => ':memory:',
             'database.connections.sqlite.foreign_key_constraints' => false,
+            'filesystems.disks.r2' => [
+                'driver' => 'local',
+                'root' => storage_path('framework/testing/disks/r2'),
+                'bucket' => 'testing',
+                'key' => 'testing',
+                'secret' => 'testing',
+                'endpoint' => 'http://localhost',
+            ],
         ]);
 
         DB::purge('sqlite');
@@ -106,6 +115,71 @@ class PekerjaanRichTextControllerTest extends TestCase
 
         $response->assertSessionHasNoErrors();
         $this->assertSame(Dokumen::STATUS_AKTIF, $dokumen->fresh()->status_dokumen);
+    }
+
+    public function test_store_rejects_main_document_larger_than_ten_megabytes(): void
+    {
+        $user = $this->createUser();
+        $locationId = DB::table('lokasi_dokumen')->insertGetId([
+            'nama_lokasi' => 'Lemari A',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->from(route('pekerjaan.create'))->post(route('pekerjaan.store'), [
+            'judul' => 'Dokumen Besar',
+            'lokasi_id' => $locationId,
+            'tanggal_mulai_penyelesaian' => '2026-08-17',
+            'tanggal_target_penyelesaian' => '2026-08-18',
+            'dokumen' => [UploadedFile::fake()->create('dokumen-besar.pdf', 10241, 'application/pdf')],
+        ]);
+
+        $response->assertRedirect(route('pekerjaan.create'));
+        $response->assertSessionHasErrors('dokumen.0');
+        $this->assertDatabaseCount('pekerjaan', 0);
+    }
+
+    public function test_store_accepts_main_document_at_exactly_ten_megabytes(): void
+    {
+        $user = $this->createUser();
+        $locationId = DB::table('lokasi_dokumen')->insertGetId([
+            'nama_lokasi' => 'Lemari A',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('pekerjaan.store'), [
+            'judul' => 'Dokumen Sepuluh MB',
+            'lokasi_id' => $locationId,
+            'tanggal_mulai_penyelesaian' => '2026-08-17',
+            'tanggal_target_penyelesaian' => '2026-08-18',
+            'dokumen' => [UploadedFile::fake()->create('dokumen-10mb.pdf', 10240, 'application/pdf')],
+        ]);
+
+        $response->assertRedirect(route('pekerjaan.index'));
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('pekerjaan', 1);
+        $this->assertDatabaseCount('dokumen', 1);
+    }
+
+    public function test_completed_status_rejects_proof_larger_than_ten_megabytes(): void
+    {
+        list($user, $pekerjaan, $dokumen) = $this->createDocumentRecords();
+
+        $response = $this->actingAs($user)->from(route('pekerjaan.index'))->patch(
+            route('pekerjaan.dokumen.status', [$pekerjaan->id, $dokumen->id]),
+            [
+                'status_dokumen' => Dokumen::STATUS_ARSIP,
+                'keterangan_penyelesaian' => '<p>Dokumen selesai diverifikasi.</p>',
+                'bukti_penyelesaian' => [
+                    UploadedFile::fake()->create('bukti-besar.pdf', 10241, 'application/pdf'),
+                ],
+            ]
+        );
+
+        $response->assertRedirect(route('pekerjaan.index'));
+        $response->assertSessionHasErrors('bukti_penyelesaian.0');
+        $this->assertSame(Dokumen::STATUS_DRAFT, $dokumen->fresh()->status_dokumen);
     }
 
     private function createDocumentRecords(): array

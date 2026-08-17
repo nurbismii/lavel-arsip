@@ -21,6 +21,8 @@ use RuntimeException;
 
 class PekerjaanController extends Controller
 {
+    private const MAX_UPLOAD_SIZE_KB = 10240;
+
     public function lihatDokumen(Dokumen $dokumen)
     {
         $dokumen->load('pekerjaan');
@@ -269,7 +271,7 @@ class PekerjaanController extends Controller
             'tanggal_mulai_penyelesaian' => ['required', 'date'],
             'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
-            'dokumen.*' => ['nullable', 'file', 'max:20480'],
+            'dokumen.*' => ['nullable', 'file', 'max:' . self::MAX_UPLOAD_SIZE_KB],
             'sub_judul' => ['nullable', 'array'],
             'sub_judul.*' => ['nullable', 'string', 'max:255'],
             'sub_deskripsi' => ['nullable', 'array'],
@@ -278,7 +280,7 @@ class PekerjaanController extends Controller
             'sub_status_dokumen.*' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
             'sub_dokumen' => ['nullable', 'array'],
             'sub_dokumen.*' => ['nullable', 'array'],
-            'sub_dokumen.*.*' => ['nullable', 'file', 'max:20480'],
+            'sub_dokumen.*.*' => ['nullable', 'file', 'max:' . self::MAX_UPLOAD_SIZE_KB],
         ]);
 
         $data['deskripsi'] = RichText::sanitizeDocument($data['deskripsi'] ?? null);
@@ -405,7 +407,7 @@ class PekerjaanController extends Controller
             'tanggal_mulai_penyelesaian' => ['required', 'date'],
             'tanggal_target_penyelesaian' => ['required', 'date', 'after_or_equal:tanggal_mulai_penyelesaian'],
             'status_dokumen' => ['nullable', Rule::in(array_keys(Dokumen::statusOptionsForInput()))],
-            'dokumen.*' => ['nullable', 'file', 'max:20480'],
+            'dokumen.*' => ['nullable', 'file', 'max:' . self::MAX_UPLOAD_SIZE_KB],
         ]);
 
         $data['deskripsi'] = RichText::sanitizeDocument($data['deskripsi'] ?? null);
@@ -511,7 +513,7 @@ class PekerjaanController extends Controller
             ],
             'bukti_penyelesaian.*' => [
                 'file',
-                'max:20480',
+                'max:' . self::MAX_UPLOAD_SIZE_KB,
             ],
             'keterangan_penyelesaian' => [
                 $status === Dokumen::STATUS_ARSIP ? 'required' : 'nullable',

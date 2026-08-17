@@ -186,7 +186,7 @@
             <label>Tambah Dokumen</label>
             <input type="file" id="dokumen-input" multiple class="form-control">
             <small class="text-muted d-block mt-1">
-                Anda bisa pilih file lebih dari sekali sebelum klik update.
+                Anda bisa pilih file lebih dari sekali sebelum klik update. Maksimal 10 MB per file.
             </small>
 
             <div class="mt-2">
