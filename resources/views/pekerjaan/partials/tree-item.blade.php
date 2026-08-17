@@ -48,8 +48,10 @@
             </button>
             <div id="{{ $descriptionCollapseId }}" class="collapse">
                 <div class="tree-description">
-                    <span class="tree-description-label">Deskripsi / Kronologi:</span>
-                    {{ $item->deskripsi }}
+                    <span class="tree-description-label d-block mb-1">Deskripsi / Kronologi:</span>
+                    <div class="rich-text-content">
+                        {{ \App\Support\RichText::renderDocument($item->deskripsi) }}
+                    </div>
                 </div>
             </div>
             @endif

@@ -2,6 +2,7 @@
 
 @push('styles')
 @include('pekerjaan._workflow_link_styles')
+@include('pekerjaan._rich_text_editor_styles')
 @endpush
 
 @section('content')
@@ -39,8 +40,15 @@
 
         <div class="mb-3">
             <label for="deskripsi">Deskripsi / Kronologi <span class="text-muted small">(opsional)</span></label>
-            <textarea id="deskripsi" name="deskripsi" rows="4" class="form-control" placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini.">{{ old('deskripsi', $pekerjaan->deskripsi) }}</textarea>
-            <small class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
+            <textarea
+                id="deskripsi"
+                name="deskripsi"
+                rows="4"
+                class="form-control"
+                placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini."
+                aria-describedby="deskripsi-help"
+                data-rich-text>{{ \App\Support\RichText::sanitizeDocument(old('deskripsi', $pekerjaan->deskripsi)) }}</textarea>
+            <small id="deskripsi-help" class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
         </div>
 
         <div class="mb-3">
@@ -254,6 +262,7 @@
 
 @push('scripts')
 @include('pekerjaan._workflow_stage_script')
+@include('pekerjaan._rich_text_editor_script')
 
 <script>
     let selectedFiles = [];

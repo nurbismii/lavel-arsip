@@ -54,9 +54,12 @@
                         </small>
                     @endif
                     @if($doc->keterangan_penyelesaian)
-                        <small class="text-muted d-block">
-                            Keterangan: {{ $doc->keterangan_penyelesaian }}
-                        </small>
+                        <div class="text-muted mt-2">
+                            <small class="d-block fw-semibold mb-1">Keterangan penyelesaian:</small>
+                            <div class="rich-text-content small">
+                                {{ \App\Support\RichText::renderDocument($doc->keterangan_penyelesaian) }}
+                            </div>
+                        </div>
                     @endif
                 </div>
             @endif
@@ -133,13 +136,23 @@
                                 </small>
                             @endif
 
-                            <label class="form-label small text-muted mt-2 mb-1">Keterangan penyelesaian</label>
+                            <label for="completion-note-{{ $doc->id }}" class="form-label small text-muted mt-2 mb-1">
+                                Keterangan penyelesaian <span class="text-danger">*</span>
+                            </label>
                             <textarea
+                                id="completion-note-{{ $doc->id }}"
                                 name="keterangan_penyelesaian"
                                 rows="2"
                                 class="form-control form-control-sm completion-note-input"
-                                maxlength="1000"
-                                {{ $doc->status_dokumen === \App\Models\Dokumen::STATUS_ARSIP ? 'required' : '' }}>{{ old('keterangan_penyelesaian', $doc->keterangan_penyelesaian) }}</textarea>
+                                placeholder="Jelaskan hasil akhir dan tindak lanjut penyelesaian dokumen."
+                                data-rich-text
+                                data-rich-text-compact="true"
+                                data-rich-text-maxlength="1000"
+                                data-rich-text-required="{{ $doc->status_dokumen === \App\Models\Dokumen::STATUS_ARSIP ? 'true' : 'false' }}"
+                                {{ $doc->status_dokumen === \App\Models\Dokumen::STATUS_ARSIP ? 'required' : '' }}>{{ \App\Support\RichText::sanitizeDocument(old('keterangan_penyelesaian', $doc->keterangan_penyelesaian)) }}</textarea>
+                            <small class="text-muted d-block mt-1">
+                                Wajib diisi saat status dokumen sudah selesai. Maksimal 1.000 karakter.
+                            </small>
                         </div>
 
                         <div class="col-12">

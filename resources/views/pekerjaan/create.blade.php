@@ -2,6 +2,7 @@
 
 @push('styles')
 @include('pekerjaan._workflow_link_styles')
+@include('pekerjaan._rich_text_editor_styles')
 @endpush
 
 @section('content')
@@ -40,8 +41,15 @@
 
                 <div class="mb-3">
                     <label for="deskripsi">Deskripsi / Kronologi <span class="text-muted small">(opsional)</span></label>
-                    <textarea id="deskripsi" name="deskripsi" rows="4" class="form-control" placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini.">{{ old('deskripsi') }}</textarea>
-                    <small class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
+                    <textarea
+                        id="deskripsi"
+                        name="deskripsi"
+                        rows="4"
+                        class="form-control"
+                        placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini."
+                        aria-describedby="deskripsi-help"
+                        data-rich-text>{{ \App\Support\RichText::sanitizeDocument(old('deskripsi')) }}</textarea>
+                    <small id="deskripsi-help" class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
                 </div>
 
                 {{-- Parent --}}
@@ -290,10 +298,17 @@
                 ✕
             </button>
 
-            <input type="text" name="sub_judul[]" class="form-control mb-2" placeholder="Judul Sub">
+            <input type="text" name="sub_judul[${subIndex}]" class="form-control mb-2" placeholder="Judul Sub">
 
-            <label class="form-label small text-muted mb-1">Deskripsi / Kronologi <span class="text-muted">(opsional)</span></label>
-            <textarea name="sub_deskripsi[${subIndex}]" rows="3" class="form-control mb-2" placeholder="Jelaskan konteks atau kronologi sub dokumen ini."></textarea>
+            <label for="sub-deskripsi-${subIndex}" class="form-label small text-muted mb-1">Deskripsi / Kronologi <span class="text-muted">(opsional)</span></label>
+            <textarea
+                id="sub-deskripsi-${subIndex}"
+                name="sub_deskripsi[${subIndex}]"
+                rows="3"
+                class="form-control mb-2"
+                placeholder="Jelaskan konteks atau kronologi sub dokumen ini."
+                data-rich-text
+                data-rich-text-compact="true"></textarea>
 
             <small class="text-muted d-block mb-2">
                 Lokasi sub pekerjaan akan mengikuti lokasi pekerjaan utama saat disimpan.
@@ -319,6 +334,12 @@
 
         document.getElementById('sub-wrapper').insertAdjacentHTML('beforeend', html);
 
+        const subElement = document.getElementById(`sub-${subIndex}`);
+
+        if (window.PekerjaanRichText) {
+            window.PekerjaanRichText.init(subElement);
+        }
+
         subIndex++;
     };
 
@@ -328,6 +349,11 @@
 
         // hapus tampilan
         let el = document.getElementById(`sub-${index}`);
+
+        if (el && window.PekerjaanRichText) {
+            window.PekerjaanRichText.destroy(el);
+        }
+
         if (el) el.remove();
     }
 
@@ -387,3 +413,7 @@
     }
 </script>
 @endsection
+
+@push('scripts')
+@include('pekerjaan._rich_text_editor_script')
+@endpush

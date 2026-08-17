@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @push('styles')
+@include('pekerjaan._rich_text_editor_styles')
 <style>
     .hover-bg:hover {
         background-color: #f8fbff;
@@ -145,7 +146,7 @@
         color: #475569;
         font-size: 0.875rem;
         line-height: 1.55;
-        white-space: pre-line;
+        white-space: normal;
     }
 
     .tree-description-label {
@@ -264,6 +265,7 @@
 @endsection
 
 @push('scripts')
+@include('pekerjaan._rich_text_editor_script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const expandButton = document.getElementById('expand-all-tree');
@@ -303,7 +305,12 @@
             }
 
             if (noteInput) {
-                noteInput.required = isComplete;
+                noteInput.dataset.richTextRequired = isComplete ? 'true' : 'false';
+                noteInput.required = noteInput.dataset.richTextReady === 'true' ? false : isComplete;
+
+                if (window.PekerjaanRichText && noteInput.dataset.richTextReady === 'true') {
+                    window.PekerjaanRichText.validate(noteInput, false);
+                }
             }
         }
 
@@ -377,6 +384,11 @@
                 const result = await response.json();
                 collapseElement.innerHTML = result.html || '';
                 collapseElement.dataset.treeLoaded = 'true';
+
+                if (window.PekerjaanRichText) {
+                    window.PekerjaanRichText.init(collapseElement);
+                }
+
                 collapseElement.querySelectorAll('.document-status-form').forEach(syncCompletionFields);
             } catch (error) {
                 collapseElement.innerHTML = `
