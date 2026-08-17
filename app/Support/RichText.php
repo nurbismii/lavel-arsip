@@ -6,6 +6,23 @@ use Illuminate\Support\HtmlString;
 
 class RichText
 {
+    private const DOCUMENT_ALLOWED_TAGS = [
+        'a',
+        'b',
+        'blockquote',
+        'br',
+        'em',
+        'h2',
+        'h3',
+        'i',
+        'li',
+        'ol',
+        'p',
+        'strong',
+        'u',
+        'ul',
+    ];
+
     private const ALLOWED_TAGS = [
         'a',
         'blockquote',
@@ -108,6 +125,78 @@ class RichText
         return self::hasVisibleText($html) ? $html : null;
     }
 
+    public static function sanitizeDocument($value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '' || !self::hasMeaningfulText($value)) {
+            return null;
+        }
+
+        if (!self::containsHtml($value)) {
+            return self::wrapPlainText($value);
+        }
+
+        $value = self::sanitize($value);
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (!class_exists(\DOMDocument::class)) {
+            return self::wrapPlainText(self::plainText($value));
+        }
+
+        $document = new \DOMDocument('1.0', 'UTF-8');
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML(
+            '<?xml encoding="UTF-8"><div id="document-rich-text-root">' . $value . '</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $root = $document->getElementById('document-rich-text-root');
+
+        if (!$root) {
+            return null;
+        }
+
+        self::sanitizeDocumentChildren($root);
+
+        $html = '';
+
+        foreach ($root->childNodes as $child) {
+            $html .= $document->saveHTML($child);
+        }
+
+        $html = trim($html);
+
+        return self::hasMeaningfulText($html) ? $html : null;
+    }
+
+    public static function plainText($value): string
+    {
+        $html = (string) $value;
+        $html = preg_replace('/<br\s*\/?>/i', ' ', $html);
+        $html = preg_replace('/<\/(p|h[1-6]|li|blockquote|div|tr)>/i', ' ', (string) $html);
+        $text = html_entity_decode(strip_tags((string) $html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace('/\xC2\xA0/u', ' ', $text);
+        $text = preg_replace('/\s+/u', ' ', (string) $text);
+
+        return trim((string) $text);
+    }
+
+    public static function hasMeaningfulText($value): bool
+    {
+        return self::plainText($value) !== '';
+    }
+
+    public static function renderDocument($value): HtmlString
+    {
+        return new HtmlString((string) self::sanitizeDocument($value));
+    }
+
     public static function sanitizeFields(array $data, array $fields): array
     {
         foreach ($fields as $field) {
@@ -153,6 +242,74 @@ class RichText
 
             $child = $next;
         }
+    }
+
+    private static function sanitizeDocumentChildren(\DOMNode $node): void
+    {
+        for ($child = $node->firstChild; $child !== null;) {
+            $next = $child->nextSibling;
+
+            if ($child instanceof \DOMElement) {
+                self::sanitizeDocumentElement($child);
+            } elseif (!($child instanceof \DOMText)) {
+                $node->removeChild($child);
+            }
+
+            $child = $next;
+        }
+    }
+
+    private static function sanitizeDocumentElement(\DOMElement $element): void
+    {
+        $tag = strtolower($element->tagName);
+
+        if (in_array($tag, self::REMOVE_WITH_CONTENT, true)) {
+            if ($element->parentNode) {
+                $element->parentNode->removeChild($element);
+            }
+
+            return;
+        }
+
+        self::sanitizeDocumentChildren($element);
+
+        if (!in_array($tag, self::DOCUMENT_ALLOWED_TAGS, true)) {
+            self::unwrap($element);
+
+            return;
+        }
+
+        $href = $tag === 'a' ? trim((string) $element->getAttribute('href')) : null;
+        $attributes = [];
+
+        foreach ($element->attributes as $attribute) {
+            $attributes[] = $attribute->name;
+        }
+
+        foreach ($attributes as $attribute) {
+            $element->removeAttribute($attribute);
+        }
+
+        if ($tag === 'a' && $href && self::safeDocumentUrl($href)) {
+            $element->setAttribute('href', $href);
+            $element->setAttribute('target', '_blank');
+            $element->setAttribute('rel', 'noopener noreferrer');
+        }
+    }
+
+    private static function wrapPlainText(string $value): string
+    {
+        $value = str_replace(["\r\n", "\r"], "\n", $value);
+        $value = htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        return '<p>' . str_replace("\n", '<br>', $value) . '</p>';
+    }
+
+    private static function safeDocumentUrl(string $url): bool
+    {
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        return in_array($scheme, ['http', 'https', 'mailto'], true);
     }
 
     private static function sanitizeElement(\DOMElement $element): void
