@@ -12,12 +12,20 @@ return new class extends Migration
             return;
         }
 
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement('ALTER TABLE `alur_kerja_tahap_sistem` MODIFY `nama_sistem` varchar(255) NULL');
     }
 
     public function down()
     {
         if (!Schema::hasTable('alur_kerja_tahap_sistem')) {
+            return;
+        }
+
+        if (DB::connection()->getDriverName() === 'sqlite') {
             return;
         }
 

@@ -18,7 +18,7 @@ return new class extends Migration
 
                 $table->unique(['alur_kerja_id', 'user_id'], 'alur_kerja_cadangan_unique');
                 $table->index('alur_kerja_id');
-                $table->index('user_id');
+                $table->index('user_id', 'alur_kerja_cadangan_user_id_index');
             });
         }
 
