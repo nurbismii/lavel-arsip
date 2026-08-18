@@ -14,5 +14,7 @@ yarn-error.log
 /.idea
 /.vscode
 /.worktrees
+/.tools
+/.env.testing
 AGENTS.md
 /public/uploads
