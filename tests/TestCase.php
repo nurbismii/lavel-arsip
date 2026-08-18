@@ -17,16 +17,21 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        if (config('database.default') !== 'sqlite'
-            || config('database.connections.sqlite.database') !== ':memory:') {
-            throw new RuntimeException('Automated tests must use SQLite :memory:.');
-        }
-
         Mail::fake();
         Notification::fake();
         Queue::fake();
         Storage::fake('local');
         Storage::fake('public');
         Storage::fake('r2');
+    }
+
+    protected function setUpTraits()
+    {
+        if (config('database.default') !== 'sqlite'
+            || config('database.connections.sqlite.database') !== ':memory:') {
+            throw new RuntimeException('Automated tests must use SQLite :memory:.');
+        }
+
+        return parent::setUpTraits();
     }
 }
