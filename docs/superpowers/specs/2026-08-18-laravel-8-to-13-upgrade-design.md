@@ -15,6 +15,8 @@ Audit awal menghasilkan kondisi berikut:
 - Baseline Laravel 8 memiliki 18 automated test yang lulus pada PHP 7.4.
 - PHP 8.5 dapat memuat Laravel 8, tetapi menghasilkan banyak peringatan deprecation.
 - Tujuh feature test gagal pada PHP 8.5 karena extension `pdo_sqlite` dan `sqlite3` belum aktif.
+- Fresh migration pada SQLite berhenti pada dua migration `ALTER TABLE ... MODIFY` khusus MySQL, walaupun migration pembuat tabelnya sudah mendefinisikan kedua kolom sebagai nullable. Keduanya perlu dibuat no-op pada SQLite tanpa mengubah perilaku MariaDB.
+- Route `/` dan `/home` menggunakan nama `home` yang sama sehingga `php artisan route:cache` gagal pada baseline. Nama `home` perlu dipertahankan hanya untuk `/home`; route `/` tetap tersedia tanpa nama.
 - Project memiliki 18 controller, 15 model, 29 migration, 55 Blade view, dan menggunakan Laravel Mix.
 - Dependency yang memerlukan perhatian khusus meliputi `fruitcake/laravel-cors`, `facade/ignition`, `laravel/sanctum`, `laravel/ui`, Flysystem AWS v1, Google API Client 2.15, Collision, dan PHPUnit 9.
 - Aplikasi menggunakan local storage, Cloudflare R2/S3, Google Drive, autentikasi, role-based access, dan activity log.
@@ -61,7 +63,7 @@ Runtime digunakan secara eksplisit agar tidak bergantung pada nilai `PATH` globa
 | Laravel 9–12 | PHP 8.2 portable |
 | Laravel 13 dan target akhir | PHP 8.5.9 (`C:\xampp\php85\php.exe`) |
 
-PHP 8.2 portable diperlukan karena Laravel 9 secara resmi mendukung PHP 8.0–8.2. PHP 8.5 hanya digunakan setelah dependency aplikasi mendukungnya. Composer dijalankan melalui executable PHP yang sesuai terhadap `C:\ProgramData\ComposerSetup\bin\composer.phar`.
+PHP 8.2 portable diperlukan karena Laravel 9 secara resmi mendukung PHP 8.0–8.2. PHP 8.5 hanya digunakan setelah dependency aplikasi mendukungnya. Composer stable terbaru disimpan di `.tools/composer.phar` dalam worktree dan dijalankan melalui executable PHP checkpoint. Pendekatan ini menghindari perubahan Composer global serta menghindari deprecation Composer 2.7 pada PHP 8.5.
 
 `pdo_sqlite` dan `sqlite3` harus aktif pada runtime yang menjalankan automated test. Extension wajib Laravel dan driver MariaDB juga diverifikasi sebelum dependency diubah.
 
@@ -215,4 +217,3 @@ Pekerjaan dinyatakan selesai ketika:
 - Build frontend production berhasil.
 - Prosedur deployment dan rollback production telah diverifikasi.
 - Tidak ada secret atau file production yang masuk ke Git.
-
