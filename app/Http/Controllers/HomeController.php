@@ -151,12 +151,30 @@ class HomeController extends Controller
                 'icon' => 'archive',
                 'status' => Dokumen::STATUS_ARSIP,
             ],
+            [
+                'label' => 'Tidak Selesai',
+                'value' => (int) ($statusTotals[Dokumen::STATUS_TIDAK_SELESAI] ?? 0),
+                'card_class' => 'bg-light',
+                'icon_wrapper_class' => 'dashboard-icon-danger',
+                'icon' => 'not-completed',
+                'status' => Dokumen::STATUS_TIDAK_SELESAI,
+            ],
+            [
+                'label' => 'Tidak Dihadiri',
+                'value' => (int) ($statusTotals[Dokumen::STATUS_TIDAK_DIHADIRI] ?? 0),
+                'card_class' => 'bg-light',
+                'icon_wrapper_class' => 'dashboard-icon-secondary',
+                'icon' => 'not-attended',
+                'status' => Dokumen::STATUS_TIDAK_DIHADIRI,
+            ],
         ];
 
         $statusBadgeClasses = [
             Dokumen::STATUS_DRAFT => 'bg-warning text-dark',
             Dokumen::STATUS_AKTIF => 'bg-primary text-white',
             Dokumen::STATUS_ARSIP => 'bg-success text-white',
+            Dokumen::STATUS_TIDAK_SELESAI => 'bg-danger text-white',
+            Dokumen::STATUS_TIDAK_DIHADIRI => 'bg-secondary text-white',
         ];
 
         $statusBoards = [];
@@ -177,10 +195,15 @@ class HomeController extends Controller
         }
 
         $deadlineAlertThreshold = now()->addDays(3)->toDateString();
+        $completedOutcomeStatuses = [
+            Dokumen::STATUS_ARSIP,
+            Dokumen::STATUS_TIDAK_SELESAI,
+            Dokumen::STATUS_TIDAK_DIHADIRI,
+        ];
 
         $deadlineAlerts = (clone $dokumenQuery)
             ->with(['pekerjaan.lokasi', 'pekerjaan.team'])
-            ->where('status_dokumen', '!=', Dokumen::STATUS_ARSIP)
+            ->whereNotIn('status_dokumen', $completedOutcomeStatuses)
             ->whereHas('pekerjaan', function ($query) use ($deadlineAlertThreshold) {
                 $query->whereNotNull('tanggal_target_penyelesaian')
                     ->whereDate('tanggal_target_penyelesaian', '<=', $deadlineAlertThreshold);

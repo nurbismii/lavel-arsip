@@ -99,6 +99,27 @@ class PekerjaanRichTextControllerTest extends TestCase
         $this->assertSame('<p><strong>Selesai diverifikasi</strong></p>', $dokumen->keterangan_penyelesaian);
     }
 
+    public function test_non_completed_outcome_statuses_save_notes_without_new_proof(): void
+    {
+        list($user, $pekerjaan, $dokumen) = $this->createDocumentRecords();
+
+        foreach ([Dokumen::STATUS_TIDAK_SELESAI, Dokumen::STATUS_TIDAK_DIHADIRI] as $status) {
+            $response = $this->actingAs($user)->patch(
+                route('pekerjaan.dokumen.status', [$pekerjaan->id, $dokumen->id]),
+                [
+                    'status_dokumen' => $status,
+                    'keterangan_penyelesaian' => '<p>Alasan status ' . $status . '.</p>',
+                ]
+            );
+
+            $response->assertSessionHasNoErrors();
+            $dokumen->refresh();
+
+            $this->assertSame($status, $dokumen->status_dokumen);
+            $this->assertSame('<p>Alasan status ' . $status . '.</p>', $dokumen->keterangan_penyelesaian);
+        }
+    }
+
     public function test_non_completed_status_does_not_require_completion_note(): void
     {
         list($user, $pekerjaan, $dokumen) = $this->createDocumentRecords();

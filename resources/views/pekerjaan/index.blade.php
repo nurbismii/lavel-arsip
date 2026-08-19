@@ -20,7 +20,7 @@
         padding-left: 0;
     }
 
-    .tree-root > .tree-item {
+    .tree-root>.tree-item {
         margin-bottom: 1rem;
     }
 
@@ -30,12 +30,12 @@
         padding-left: 1.5rem;
     }
 
-    .tree-branch > .tree-item {
+    .tree-branch>.tree-item {
         position: relative;
         margin-bottom: 0.75rem;
     }
 
-    .tree-branch > .tree-item::before {
+    .tree-branch>.tree-item::before {
         content: "";
         position: absolute;
         top: 1rem;
@@ -45,7 +45,7 @@
         background: #cfd7e3;
     }
 
-    .tree-branch > .tree-item::after {
+    .tree-branch>.tree-item::after {
         content: "";
         position: absolute;
         top: -0.75rem;
@@ -55,7 +55,7 @@
         background: #cfd7e3;
     }
 
-    .tree-branch > .tree-item:last-child::after {
+    .tree-branch>.tree-item:last-child::after {
         height: 1rem;
     }
 
@@ -202,9 +202,9 @@
             <select name="status_dokumen" class="form-control">
                 <option value="">Semua Status</option>
                 @foreach($statusDokumenOptions as $value => $label)
-                    <option value="{{ $value }}" {{ $statusDokumen === $value ? 'selected' : '' }}>
-                        {{ $label }}
-                    </option>
+                <option value="{{ $value }}" {{ $statusDokumen === $value ? 'selected' : '' }}>
+                    {{ $label }}
+                </option>
                 @endforeach
             </select>
         </div>
@@ -220,13 +220,13 @@
     <div class="alert alert-light border small">
         Filter aktif:
         @if($search !== '')
-            kata kunci <strong>{{ $search }}</strong>
+        kata kunci <strong>{{ $search }}</strong>
         @endif
         @if($search !== '' && $statusDokumen !== '')
-            dan
+        dan
         @endif
         @if($statusDokumen !== '')
-            status <strong>{{ $statusDokumenOptions[$statusDokumen] ?? $statusDokumen }}</strong>
+        status <strong>{{ $statusDokumenOptions[$statusDokumen] ?? $statusDokumen }}</strong>
         @endif
         .
         Folder yang tampil adalah struktur yang memiliki dokumen sesuai filter.
@@ -280,6 +280,7 @@
             const loanFields = form.querySelector('.loan-fields');
             const borrowerSelect = form.querySelector('.borrower-select');
             const fields = form.querySelector('.completion-fields');
+            const proofFields = form.querySelector('.completion-proof-fields');
             const proofInput = form.querySelector('.completion-proof-input');
             const noteInput = form.querySelector('.completion-note-input');
 
@@ -288,6 +289,7 @@
             }
 
             const isComplete = select.value === select.dataset.completeStatus;
+            const isCompletionNoteStatus = isComplete || select.value === 'tidak_selesai' || select.value === 'tidak_dihadiri';
             const isActive = select.value === select.dataset.activeStatus;
 
             if (loanFields) {
@@ -298,15 +300,19 @@
                 borrowerSelect.required = isActive;
             }
 
-            fields.classList.toggle('d-none', !isComplete);
+            fields.classList.toggle('d-none', !isCompletionNoteStatus);
+
+            if (proofFields) {
+                proofFields.classList.toggle('d-none', !isComplete);
+            }
 
             if (proofInput) {
                 proofInput.required = isComplete && fields.dataset.hasProof !== 'true';
             }
 
             if (noteInput) {
-                noteInput.dataset.richTextRequired = isComplete ? 'true' : 'false';
-                noteInput.required = noteInput.dataset.richTextReady === 'true' ? false : isComplete;
+                noteInput.dataset.richTextRequired = isCompletionNoteStatus ? 'true' : 'false';
+                noteInput.required = noteInput.dataset.richTextReady === 'true' ? false : isCompletionNoteStatus;
 
                 if (window.PekerjaanRichText && noteInput.dataset.richTextReady === 'true') {
                     window.PekerjaanRichText.validate(noteInput, false);
@@ -373,7 +379,7 @@
                         return;
                     }
 
-                    window.location.href = '{{ route('login') }}';
+                    window.location.href = '{{route('login')}}';
                     return;
                 }
 
