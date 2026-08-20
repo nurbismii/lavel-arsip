@@ -10,6 +10,8 @@ class Dokumen extends Model
     public const STATUS_DRAFT = 'draft';
     public const STATUS_AKTIF = 'aktif';
     public const STATUS_ARSIP = 'arsip';
+    public const STATUS_TIDAK_SELESAI = 'tidak_selesai';
+    public const STATUS_TIDAK_DIHADIRI = 'tidak_dihadiri';
 
     protected $table = 'dokumen';
     protected $fillable = [
@@ -36,6 +38,8 @@ class Dokumen extends Model
             self::STATUS_DRAFT => 'Dalam proses',
             self::STATUS_AKTIF => 'Sedang Digunakan',
             self::STATUS_ARSIP => 'Sudah Selesai',
+            self::STATUS_TIDAK_SELESAI => 'Tidak Selesai',
+            self::STATUS_TIDAK_DIHADIRI => 'Tidak Dihadiri',
         ];
     }
 

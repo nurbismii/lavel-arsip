@@ -502,6 +502,12 @@ class PekerjaanController extends Controller
         }
 
         $status = (string) $request->input('status_dokumen');
+        $completionNoteStatuses = [
+            Dokumen::STATUS_ARSIP,
+            Dokumen::STATUS_TIDAK_SELESAI,
+            Dokumen::STATUS_TIDAK_DIHADIRI,
+        ];
+        $requiresCompletionNote = in_array($status, $completionNoteStatuses, true);
 
         $hasExistingProof = $dokumen->buktiPenyelesaians()->exists() || filled($dokumen->bukti_penyelesaian_path);
 
@@ -516,8 +522,8 @@ class PekerjaanController extends Controller
                 'max:' . self::MAX_UPLOAD_SIZE_KB,
             ],
             'keterangan_penyelesaian' => [
-                $status === Dokumen::STATUS_ARSIP ? 'required' : 'nullable',
-                new MeaningfulRichText(1000, $status === Dokumen::STATUS_ARSIP),
+                $requiresCompletionNote ? 'required' : 'nullable',
+                new MeaningfulRichText(1000, $requiresCompletionNote),
             ],
             'peminjam_user_id' => [
                 $status === Dokumen::STATUS_AKTIF ? 'required' : 'nullable',
@@ -542,9 +548,11 @@ class PekerjaanController extends Controller
             'status_dokumen' => $data['status_dokumen'],
         ];
 
-        if ($data['status_dokumen'] === Dokumen::STATUS_ARSIP) {
+        if ($requiresCompletionNote) {
             $updates['keterangan_penyelesaian'] = RichText::sanitizeDocument($data['keterangan_penyelesaian']);
-            $updates['diselesaikan_pada'] = $dokumen->diselesaikan_pada ?: now();
+            $updates['diselesaikan_pada'] = $data['status_dokumen'] === Dokumen::STATUS_ARSIP
+                ? ($dokumen->diselesaikan_pada ?: now())
+                : null;
         } else {
             $updates['diselesaikan_pada'] = null;
         }
