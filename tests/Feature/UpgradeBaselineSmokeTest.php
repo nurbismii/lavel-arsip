@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
 class UpgradeBaselineSmokeTest extends TestCase
@@ -137,5 +138,57 @@ class UpgradeBaselineSmokeTest extends TestCase
                 'bagan_struktur' => $svg,
             ])
             ->assertSessionHasErrors('bagan_struktur');
+    }
+
+    public function test_session_and_cache_names_are_explicit(): void
+    {
+        $this->assertNotEmpty(config('session.cookie'));
+        $this->assertNotEmpty(config('cache.prefix'));
+        $this->assertSame('php', config('session.serialization'));
+    }
+
+    public function test_request_forgery_middleware_uses_the_laravel_13_class(): void
+    {
+        $this->assertTrue(is_subclass_of(
+            \App\Http\Middleware\PreventRequestForgery::class,
+            \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class
+        ));
+    }
+
+    public function test_database_config_loads_without_pdo_mysql(): void
+    {
+        $script = <<<'PHP'
+function env($key, $default = null) { return $default; }
+function database_path($path = '') { return $path; }
+
+if (extension_loaded('pdo_mysql')) {
+    fwrite(STDERR, 'The subprocess unexpectedly loaded pdo_mysql.');
+    exit(2);
+}
+
+require $argv[1].'/vendor/autoload.php';
+require $argv[1].'/config/database.php';
+
+echo 'loaded';
+PHP;
+
+        $process = new Process([
+            PHP_BINARY,
+            '-n',
+            '-d',
+            'error_reporting=E_ALL',
+            '-d',
+            'display_errors=1',
+            '-r',
+            $script,
+            base_path(),
+        ]);
+        $process->run();
+
+        $this->assertTrue(
+            $process->isSuccessful(),
+            trim($process->getErrorOutput().PHP_EOL.$process->getOutput())
+        );
+        $this->assertSame('loaded', $process->getOutput());
     }
 }

@@ -48,6 +48,8 @@ return [
 
     'encrypt' => false,
 
+    'serialization' => env('SESSION_SERIALIZATION', 'php'),
+
     /*
     |--------------------------------------------------------------------------
     | Session File Location
