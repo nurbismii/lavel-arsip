@@ -114,4 +114,28 @@ class UpgradeBaselineSmokeTest extends TestCase
         Storage::disk('local')->assertExists('upgrade/local.txt');
         Storage::disk('r2')->assertExists('upgrade/r2.txt');
     }
+
+    public function test_local_disk_keeps_the_legacy_storage_app_root(): void
+    {
+        $this->assertSame(
+            storage_path('app'),
+            config('filesystems.disks.local.root')
+        );
+    }
+
+    public function test_svg_is_not_accepted_as_a_jobdesc_structure_image(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $svg = \Illuminate\Http\UploadedFile::fake()->createWithContent(
+            'diagram.svg',
+            '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+        );
+
+        $this->actingAs($admin)
+            ->post(route('jobdesc.store'), [
+                'jabatan' => 'Penguji Upgrade',
+                'bagan_struktur' => $svg,
+            ])
+            ->assertSessionHasErrors('bagan_struktur');
+    }
 }
