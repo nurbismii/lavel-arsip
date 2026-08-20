@@ -47,7 +47,9 @@ The deployment operator owns the cutover journal. Record the result and timestam
 - [ ] The operator has a tested Apache stop/start procedure and console access if Apache fails to restart.
 - [ ] The pre-provisioned database and storage backup destination is encrypted at rest, outside `C:\xampp\htdocs`, restricted to the approved backup owner/service account, and has enough free space. Encryption keys/passphrases remain in the approved key store and are never command arguments.
 - [ ] The database operator has confirmed the approved non-secret endpoint host, endpoint port, database name, server hostname, and TLS options out of band. Do not obtain or record a password in this document, a ticket comment, shell history, or a command argument.
+- [ ] The database operator understands that `DATABASE_URL` overrides individual `DB_*` values and will approve the parsed endpoint/live identity/TLS result from the actual Laravel PDO connection, not raw environment text.
 - [ ] The operator has a pre-tested upstream traffic/write-block procedure that blocks public requests, webhooks, and other inbound writers while still permitting an approved local health-check path.
+- [ ] The approved backup writer/service account has an interactive or controlled operator session for the ACL and create/write/read canary gate; a different administrator identity is not an acceptable substitute.
 - [ ] Queue workers, scheduled commands, webhooks, and other background writers have an approved pause/resume procedure.
 - [ ] Rollback owner, rollback decision deadline, and observation window are recorded.
 
@@ -95,7 +97,11 @@ Run from the current production release before changing code, runtime, configura
        throw 'Approved database server hostname is required.'
    }
    if ($ApprovedDatabaseTlsMode -eq 'verify-ca') {
-       $ApprovedDatabaseCaPath = [IO.Path]::GetFullPath((Read-Host 'Approved database CA certificate path'))
+       $ApprovedDatabaseCaInput = Read-Host 'Approved absolute database CA certificate path'
+       if (![IO.Path]::IsPathFullyQualified($ApprovedDatabaseCaInput)) {
+           throw 'Approved database CA certificate path must be absolute.'
+       }
+       $ApprovedDatabaseCaPath = [IO.Path]::GetFullPath($ApprovedDatabaseCaInput)
        if (!(Test-Path -LiteralPath $ApprovedDatabaseCaPath -PathType Leaf)) {
            throw 'Approved database CA certificate does not exist.'
        }
@@ -114,38 +120,67 @@ Run from the current production release before changing code, runtime, configura
    Set-Location $releaseFullPath
    ```
 
-2. Derive the current database endpoint from Laravel 8's effective configuration and require exact equality with the approved endpoint before using any database client. Record the current versions, migration status, release SHA, and live database identity. These commands are read-only.
+2. Probe the actual Laravel 8 PDO connection and require exact equality with the approved endpoint before using any database client. `DATABASE_URL` can override individual `DB_*` values; therefore, do not inspect raw environment variables or the raw URL. `Connection::getConfig('host'|'port'|'database')` below returns the parsed effective fields. The probe never requests or prints the connection URL, username, password, or full configuration.
 
    ```powershell
-   $PreflightDatabaseUser = Read-Host 'Database user'
    & 'C:\xampp\php\php.exe' artisan --version
    & 'C:\xampp\php\php.exe' -v
    & 'C:\xampp\php\php.exe' artisan migrate:status
    git rev-parse HEAD
-   $CurrentDatabaseHost = (& 'C:\xampp\php\php.exe' artisan tinker --execute="echo config('database.connections.'.config('database.default').'.host');").Trim()
-   $CurrentDatabasePort = (& 'C:\xampp\php\php.exe' artisan tinker --execute="echo config('database.connections.'.config('database.default').'.port');").Trim()
-   $CurrentDatabaseName = (& 'C:\xampp\php\php.exe' artisan tinker --execute="echo config('database.connections.'.config('database.default').'.database');").Trim()
-   "Current database endpoint: ${CurrentDatabaseHost}:${CurrentDatabasePort}/$CurrentDatabaseName"
-   if ($CurrentDatabaseHost -ne $ApprovedDatabaseHost -or $CurrentDatabasePort -ne $ApprovedDatabasePort -or $CurrentDatabaseName -ne $ApprovedDatabaseName) {
-       throw 'Current Laravel 8 database endpoint does not match the approved production identity.'
+
+   $LaravelPdoProbeCode = @'
+   $connection = \Illuminate\Support\Facades\DB::connection();
+   $connection->getPdo();
+   $identity = (array) $connection->selectOne('SELECT DATABASE() AS database_name, @@hostname AS server_hostname, @@port AS server_port, VERSION() AS server_version');
+   $sslStatus = (array) $connection->selectOne("SHOW STATUS LIKE 'Ssl_cipher'");
+   $options = (array) $connection->getConfig('options');
+   $caPath = '';
+   foreach (['Pdo\\Mysql::ATTR_SSL_CA', 'PDO::MYSQL_ATTR_SSL_CA'] as $constantName) {
+       if (defined($constantName) && array_key_exists(constant($constantName), $options)) {
+           $caPath = (string) $options[constant($constantName)];
+           break;
+       }
    }
-   $LiveDatabaseIdentity = & 'C:\xampp\mysql\bin\mysql.exe' @ApprovedDatabaseTlsArguments --host=$ApprovedDatabaseHost --port=$ApprovedDatabasePort --database=$ApprovedDatabaseName --user=$PreflightDatabaseUser --password --batch --skip-column-names --execute="SELECT DATABASE(), @@hostname, @@port, VERSION(), (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_type = 'BASE TABLE'), (SELECT COUNT(*) FROM migrations);"
-   if ($LASTEXITCODE -ne 0) { throw 'Live database identity query failed.' }
-   $LiveDatabaseFields = @($LiveDatabaseIdentity -split "`t")
-   if ($LiveDatabaseFields.Count -ne 6) { throw 'Unexpected live database identity response.' }
-   $LiveDatabaseName = $LiveDatabaseFields[0]
-   $LiveDatabaseServerHostname = $LiveDatabaseFields[1]
-   $LiveDatabasePort = $LiveDatabaseFields[2]
-   $LiveDatabaseVersion = $LiveDatabaseFields[3]
-   $ExpectedBaseTableCount = [int]$LiveDatabaseFields[4]
-   $ExpectedMigrationRowCount = [int]$LiveDatabaseFields[5]
-   "Live database identity: ${ApprovedDatabaseHost}:${LiveDatabasePort}/$LiveDatabaseName on server $LiveDatabaseServerHostname; version $LiveDatabaseVersion"
-   if ($LiveDatabaseName -ne $ApprovedDatabaseName -or $LiveDatabasePort -ne $ApprovedDatabasePort -or $LiveDatabaseServerHostname -ne $ApprovedDatabaseServerHostname) {
-       throw 'Live database identity does not match the approved database/server identity.'
+   echo json_encode([
+       'driver' => (string) $connection->getConfig('driver'),
+       'host' => (string) $connection->getConfig('host'),
+       'port' => (string) $connection->getConfig('port'),
+       'database' => (string) $connection->getConfig('database'),
+       'live_database' => (string) ($identity['database_name'] ?? ''),
+       'server_hostname' => (string) ($identity['server_hostname'] ?? ''),
+       'server_port' => (string) ($identity['server_port'] ?? ''),
+       'server_version' => (string) ($identity['server_version'] ?? ''),
+       'ssl_cipher' => (string) ($sslStatus['Value'] ?? ''),
+       'ca_path' => $caPath,
+   ], JSON_THROW_ON_ERROR);
+   '@
+   $Laravel74PdoProbeJson = (& 'C:\xampp\php\php.exe' artisan tinker --execute=$LaravelPdoProbeCode).Trim()
+   if ($LASTEXITCODE -ne 0) { throw 'Laravel 8 PDO runtime probe failed.' }
+   $Laravel74PdoProbe = $Laravel74PdoProbeJson | ConvertFrom-Json
+   "Laravel 8 PDO endpoint: $($Laravel74PdoProbe.host):$($Laravel74PdoProbe.port)/$($Laravel74PdoProbe.database)"
+   "Laravel 8 live identity: $($Laravel74PdoProbe.live_database) on $($Laravel74PdoProbe.server_hostname):$($Laravel74PdoProbe.server_port); version $($Laravel74PdoProbe.server_version)"
+   if ($Laravel74PdoProbe.driver -ne 'mysql' -or $Laravel74PdoProbe.host -ne $ApprovedDatabaseHost -or $Laravel74PdoProbe.port -ne $ApprovedDatabasePort -or $Laravel74PdoProbe.database -ne $ApprovedDatabaseName) {
+       throw 'Laravel 8 parsed PDO configuration does not match the approved production endpoint.'
+   }
+   if ($Laravel74PdoProbe.live_database -ne $ApprovedDatabaseName -or $Laravel74PdoProbe.server_hostname -ne $ApprovedDatabaseServerHostname -or $Laravel74PdoProbe.server_port -ne $ApprovedDatabasePort) {
+       throw 'Laravel 8 live PDO identity does not match the approved database/server identity.'
+   }
+   if ($Laravel74PdoProbe.server_version -notmatch '^(?<MariaDbVersion>\d+\.\d+\.\d+).*MariaDB' -or [version]$Matches.MariaDbVersion -lt [version]'10.3.0') {
+       throw "MariaDB 10.3 or newer is required; found $($Laravel74PdoProbe.server_version)."
+   }
+   if ($ApprovedDatabaseTlsMode -eq 'verify-ca') {
+       if ([string]::IsNullOrWhiteSpace($Laravel74PdoProbe.ssl_cipher)) { throw 'Laravel 8 PDO connection did not negotiate TLS.' }
+       if ([string]::IsNullOrWhiteSpace($Laravel74PdoProbe.ca_path)) { throw 'Laravel 8 PDO connection has no configured CA option.' }
+       $Laravel74CaPath = [IO.Path]::GetFullPath($Laravel74PdoProbe.ca_path)
+       if (!$Laravel74CaPath.Equals($ApprovedDatabaseCaPath, [StringComparison]::OrdinalIgnoreCase)) {
+           throw 'Laravel 8 PDO CA option does not match the approved CA path.'
+       }
+   } elseif (![string]::IsNullOrWhiteSpace($Laravel74PdoProbe.ca_path)) {
+       throw 'Laravel 8 PDO has a CA option that is absent from the approved no-TLS policy.'
    }
    ```
 
-   The database password must be entered only at the interactive prompt. The database operator must approve the mapping from Laravel's configured endpoint host to the live `@@hostname`, and sign the recorded `SELECT DATABASE(), @@hostname, @@port` result. Stop if the current runtime is not the expected PHP 7.4/Laravel 8 release, MariaDB is older than 10.3, or any identity field is unexpected.
+   The database operator must approve the mapping from Laravel's parsed endpoint host to the live `@@hostname`, sign the `SELECT DATABASE(), @@hostname, @@port` result, and sign the TLS result (`Ssl_cipher` non-empty plus approved CA path when `verify-ca` is required). Stop if the current runtime is not the expected PHP 7.4/Laravel 8 release, MariaDB is older than 10.3, or any PDO identity/TLS field is unexpected. Credentials remain inside Laravel's existing configuration and are never emitted.
 
 3. Audit the final lock file with the reviewed PHP 8.5 runtime and the host-installed Composer PHAR. Do not use the staging-only `.tools` directory.
 
@@ -205,7 +240,7 @@ Database and storage snapshots must share a write-frozen recovery point. The ups
    }
    ```
 
-3. Validate the pre-provisioned encrypted backup root and its ACL **before** creating a recovery-point directory or artifact. The encryption control must already be active and independently approved; never provide an encryption key or passphrase on the command line. The ACL owner and writer/service account must match the approved record, and broad principals must not have write access.
+3. Validate the pre-provisioned encrypted backup root and its ACL **before** creating a recovery-point directory or artifact. The encryption control must already be active and independently approved; never provide an encryption key or passphrase on the command line. Evaluate each mutating filesystem right independently for the current backup-writer token. Any applicable explicit/inherited deny on a required right stops the change; an allow is effective only when that right is fully included and no applicable deny exists. Broad principals must have no effective mutating right. The approved writer must run this session itself and pass an actual create/write/read canary; the canary is retained as recovery evidence rather than deleted.
 
    ```powershell
    $BackupEncryptionEvidence = Read-Host 'Approved encryption-at-rest evidence/change ID'
@@ -223,23 +258,73 @@ Database and storage snapshots must share a write-frozen recovery point. The ups
        $Acl = Get-Acl -LiteralPath $Path
        $Acl | Format-List Path, Owner, AccessToString
        if ($Acl.Owner -ne $ExpectedOwner) { throw "Unexpected ACL owner on $Path." }
-       $WriteMask = [Security.AccessControl.FileSystemRights]::Write -bor [Security.AccessControl.FileSystemRights]::Modify -bor [Security.AccessControl.FileSystemRights]::FullControl
+
+       $CurrentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+       $ExpectedWriterSid = ([Security.Principal.NTAccount]$ExpectedWriter).Translate([Security.Principal.SecurityIdentifier]).Value
+       if ($CurrentIdentity.User.Value -ne $ExpectedWriterSid) {
+           throw 'This backup step must run as the approved backup writer/service account.'
+       }
+       $TokenSids = @($CurrentIdentity.User.Value) + @($CurrentIdentity.Groups | ForEach-Object { $_.Value })
+       $Rules = @($Acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
        $BroadSids = @('S-1-1-0', 'S-1-5-11', 'S-1-5-32-545')
-       $BroadWritableRules = @($Acl.Access | Where-Object {
-           try { $Sid = $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value } catch { $Sid = $_.IdentityReference.Value }
-           $_.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow -and ($_.FileSystemRights -band $WriteMask) -and $Sid -in $BroadSids
-       })
-       if ($BroadWritableRules.Count -gt 0) { throw "Broad principal has write access on $Path." }
-       $WriterRules = @($Acl.Access | Where-Object {
-           $_.IdentityReference.Value -eq $ExpectedWriter -and $_.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow -and ($_.FileSystemRights -band $WriteMask)
-       })
-       if ($WriterRules.Count -eq 0) { throw "Approved backup writer lacks explicit/inherited write access on $Path." }
+
+       $MutatingRights = @(
+           [Security.AccessControl.FileSystemRights]::CreateFiles,
+           [Security.AccessControl.FileSystemRights]::WriteData,
+           [Security.AccessControl.FileSystemRights]::CreateDirectories,
+           [Security.AccessControl.FileSystemRights]::AppendData,
+           [Security.AccessControl.FileSystemRights]::WriteExtendedAttributes,
+           [Security.AccessControl.FileSystemRights]::WriteAttributes,
+           [Security.AccessControl.FileSystemRights]::DeleteSubdirectoriesAndFiles,
+           [Security.AccessControl.FileSystemRights]::Delete,
+           [Security.AccessControl.FileSystemRights]::ChangePermissions,
+           [Security.AccessControl.FileSystemRights]::TakeOwnership
+       ) | Select-Object -Unique
+       $RequiredWriterRights = @(
+           [Security.AccessControl.FileSystemRights]::CreateFiles,
+           [Security.AccessControl.FileSystemRights]::WriteData,
+           [Security.AccessControl.FileSystemRights]::CreateDirectories,
+           [Security.AccessControl.FileSystemRights]::AppendData,
+           [Security.AccessControl.FileSystemRights]::WriteExtendedAttributes,
+           [Security.AccessControl.FileSystemRights]::WriteAttributes,
+           [Security.AccessControl.FileSystemRights]::ReadData
+       ) | Select-Object -Unique
+
+       function Get-RightDecision {
+           param($CandidateRules, [string[]]$ApplicableSids, [Security.AccessControl.FileSystemRights]$Right)
+           $MatchingRules = @($CandidateRules | Where-Object {
+               $_.IdentityReference.Value -in $ApplicableSids -and (($_.FileSystemRights -band $Right) -eq $Right)
+           })
+           $Denied = @($MatchingRules | Where-Object { $_.AccessControlType -eq [Security.AccessControl.AccessControlType]::Deny }).Count -gt 0
+           $Allowed = @($MatchingRules | Where-Object { $_.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow }).Count -gt 0
+           [pscustomobject]@{ Right = $Right; Allowed = $Allowed; Denied = $Denied; Effective = $Allowed -and !$Denied }
+       }
+
+       foreach ($BroadSid in $BroadSids) {
+           foreach ($Right in $MutatingRights) {
+               $Decision = Get-RightDecision -CandidateRules $Rules -ApplicableSids @($BroadSid) -Right $Right
+               if ($Decision.Effective) { throw "Broad principal $BroadSid has effective $Right on $Path." }
+           }
+       }
+       foreach ($Right in $RequiredWriterRights) {
+           $Decision = Get-RightDecision -CandidateRules $Rules -ApplicableSids $TokenSids -Right $Right
+           if ($Decision.Denied) { throw "An applicable deny blocks required writer right $Right on $Path." }
+           if (!$Decision.Effective) { throw "Approved writer lacks required effective right $Right on $Path." }
+       }
    }
 
    Assert-RestrictedBackupAcl -Path $BackupRoot -ExpectedOwner $ApprovedBackupOwner -ExpectedWriter $ApprovedBackupWriter
    $RecoveryPointRoot = Join-Path $BackupRoot $Stamp
-   New-Item -ItemType Directory -Path $RecoveryPointRoot | Out-Null
-   Assert-RestrictedBackupAcl -Path $RecoveryPointRoot -ExpectedOwner $ApprovedBackupOwner -ExpectedWriter $ApprovedBackupWriter
+   New-Item -ItemType Directory -Path $RecoveryPointRoot -ErrorAction Stop | Out-Null
+   Assert-RestrictedBackupAcl -Path $RecoveryPointRoot -ExpectedOwner $ApprovedBackupWriter -ExpectedWriter $ApprovedBackupWriter
+   $AclCanaryValue = [guid]::NewGuid().ToString('N')
+   $AclCanaryPath = Join-Path $RecoveryPointRoot "acl-write-canary-$Stamp.txt"
+   New-Item -ItemType File -Path $AclCanaryPath -ErrorAction Stop | Out-Null
+   Set-Content -LiteralPath $AclCanaryPath -Value $AclCanaryValue -NoNewline -ErrorAction Stop
+   if ((Get-Content -LiteralPath $AclCanaryPath -Raw -ErrorAction Stop) -cne $AclCanaryValue) {
+       throw 'Backup writer canary content verification failed.'
+   }
+   Get-FileHash -Algorithm SHA256 $AclCanaryPath
    ```
 
 4. Create a code archive in the restricted recovery-point directory. The archive deliberately excludes secrets, dependencies, staging/worktree material, user files, caches, logs, and sessions. Production `.env` remains managed by the existing secret-management procedure and must never be added to the release artifact.
@@ -344,7 +429,7 @@ Database and storage snapshots must share a write-frozen recovery point. The ups
    }
    ```
 
-9. Record the final backup paths, sizes, hashes, exhaustive-listing result, validation-restore result, identity/count comparison, and recovery-point timestamp. The database operator and approver must sign the backup gate before cutover. Keep the upstream block, Laravel maintenance mode, and all writer pauses active.
+9. Record the final backup paths, sizes, archive/listing/canary hashes, exhaustive-listing result, validation-restore result, identity/count comparison, and recovery-point timestamp. The database operator and approver must sign the backup gate before cutover. Keep the upstream block, Laravel maintenance mode, and all writer pauses active.
 
 ## Cutover
 
@@ -396,37 +481,70 @@ The site is intentionally unavailable during this sequence. The approved upstrea
    if ($LASTEXITCODE -ne 0) { throw 'A required PHP 8.5 extension is missing.' }
    ```
 
-6. Clear stale Laravel caches with PHP 8.5, then derive the effective environment and full database endpoint from Laravel 13. Require exact equality with the same approved host, port, and database used by every database client. Query and approve the live identity again before migration. These checks expose neither passwords nor connection tokens.
+6. Clear stale Laravel caches with PHP 8.5, then probe the actual Laravel 13 PDO connection before migration. This repeats the safe parsed-config/live-identity/TLS checks after source and dependency replacement, accounts for any `DATABASE_URL` override, and never requests or prints the raw URL, username, password, or full configuration.
 
    ```powershell
    & 'C:\xampp\php85\php.exe' artisan optimize:clear
    if ($LASTEXITCODE -ne 0) { throw 'Laravel cache clear failed.' }
    $ActiveEnvironment = (& 'C:\xampp\php85\php.exe' artisan tinker --execute="echo app()->environment();").Trim()
-   $ActiveDatabaseHost = (& 'C:\xampp\php85\php.exe' artisan tinker --execute="echo config('database.connections.'.config('database.default').'.host');").Trim()
-   $ActiveDatabasePort = (& 'C:\xampp\php85\php.exe' artisan tinker --execute="echo config('database.connections.'.config('database.default').'.port');").Trim()
-   $ActiveDatabaseName = (& 'C:\xampp\php85\php.exe' artisan tinker --execute="echo config('database.connections.'.config('database.default').'.database');").Trim()
    $ActiveDebug = (& 'C:\xampp\php85\php.exe' artisan tinker --execute="echo config('app.debug') ? 'true' : 'false';").Trim()
-   "Environment: $ActiveEnvironment"
-   "Database endpoint: ${ActiveDatabaseHost}:${ActiveDatabasePort}/$ActiveDatabaseName"
-   "Debug: $ActiveDebug"
    if ($ActiveEnvironment -ne 'production') { throw 'APP_ENV is not production.' }
-   if ($ActiveDatabaseHost -ne $ApprovedDatabaseHost -or $ActiveDatabasePort -ne $ApprovedDatabasePort -or $ActiveDatabaseName -ne $ApprovedDatabaseName) {
-       throw 'Laravel 13 database endpoint does not match the approved production identity.'
-   }
    if ($ActiveDebug -ne 'false') { throw 'APP_DEBUG must be false.' }
-   $CutoverDatabaseUser = Read-Host 'Database user for final identity check'
-   $CutoverDatabaseIdentity = & 'C:\xampp\mysql\bin\mysql.exe' @ApprovedDatabaseTlsArguments --host=$ApprovedDatabaseHost --port=$ApprovedDatabasePort --database=$ApprovedDatabaseName --user=$CutoverDatabaseUser --password --batch --skip-column-names --execute='SELECT DATABASE(), @@hostname, @@port;'
-   if ($LASTEXITCODE -ne 0) { throw 'Final live database identity query failed.' }
-   $CutoverDatabaseFields = @($CutoverDatabaseIdentity -split "`t")
-   if ($CutoverDatabaseFields.Count -ne 3 -or $CutoverDatabaseFields[0] -ne $ApprovedDatabaseName -or $CutoverDatabaseFields[1] -ne $ApprovedDatabaseServerHostname -or $CutoverDatabaseFields[2] -ne $ApprovedDatabasePort) {
-       throw 'Final live database identity does not match the approved database/server identity.'
+
+   $Laravel13PdoProbeCode = @'
+   $connection = \Illuminate\Support\Facades\DB::connection();
+   $connection->getPdo();
+   $identity = (array) $connection->selectOne('SELECT DATABASE() AS database_name, @@hostname AS server_hostname, @@port AS server_port, VERSION() AS server_version');
+   $sslStatus = (array) $connection->selectOne("SHOW STATUS LIKE 'Ssl_cipher'");
+   $options = (array) $connection->getConfig('options');
+   $caPath = '';
+   foreach (['Pdo\\Mysql::ATTR_SSL_CA', 'PDO::MYSQL_ATTR_SSL_CA'] as $constantName) {
+       if (defined($constantName) && array_key_exists(constant($constantName), $options)) {
+           $caPath = (string) $options[constant($constantName)];
+           break;
+       }
+   }
+   echo json_encode([
+       'driver' => (string) $connection->getConfig('driver'),
+       'host' => (string) $connection->getConfig('host'),
+       'port' => (string) $connection->getConfig('port'),
+       'database' => (string) $connection->getConfig('database'),
+       'live_database' => (string) ($identity['database_name'] ?? ''),
+       'server_hostname' => (string) ($identity['server_hostname'] ?? ''),
+       'server_port' => (string) ($identity['server_port'] ?? ''),
+       'server_version' => (string) ($identity['server_version'] ?? ''),
+       'ssl_cipher' => (string) ($sslStatus['Value'] ?? ''),
+       'ca_path' => $caPath,
+   ], JSON_THROW_ON_ERROR);
+   '@
+   $Laravel13PdoProbeJson = (& 'C:\xampp\php85\php.exe' artisan tinker --execute=$Laravel13PdoProbeCode).Trim()
+   if ($LASTEXITCODE -ne 0) { throw 'Laravel 13 PDO runtime probe failed.' }
+   $Laravel13PdoProbe = $Laravel13PdoProbeJson | ConvertFrom-Json
+   "Environment: $ActiveEnvironment; debug: $ActiveDebug"
+   "Laravel 13 PDO endpoint: $($Laravel13PdoProbe.host):$($Laravel13PdoProbe.port)/$($Laravel13PdoProbe.database)"
+   "Laravel 13 live identity: $($Laravel13PdoProbe.live_database) on $($Laravel13PdoProbe.server_hostname):$($Laravel13PdoProbe.server_port); version $($Laravel13PdoProbe.server_version)"
+   if ($Laravel13PdoProbe.driver -ne 'mysql' -or $Laravel13PdoProbe.host -ne $ApprovedDatabaseHost -or $Laravel13PdoProbe.port -ne $ApprovedDatabasePort -or $Laravel13PdoProbe.database -ne $ApprovedDatabaseName) {
+       throw 'Laravel 13 parsed PDO configuration does not match the approved production endpoint.'
+   }
+   if ($Laravel13PdoProbe.live_database -ne $ApprovedDatabaseName -or $Laravel13PdoProbe.server_hostname -ne $ApprovedDatabaseServerHostname -or $Laravel13PdoProbe.server_port -ne $ApprovedDatabasePort) {
+       throw 'Laravel 13 live PDO identity does not match the approved database/server identity.'
+   }
+   if ($ApprovedDatabaseTlsMode -eq 'verify-ca') {
+       if ([string]::IsNullOrWhiteSpace($Laravel13PdoProbe.ssl_cipher)) { throw 'Laravel 13 PDO connection did not negotiate TLS.' }
+       if ([string]::IsNullOrWhiteSpace($Laravel13PdoProbe.ca_path)) { throw 'Laravel 13 PDO connection has no configured CA option.' }
+       $Laravel13CaPath = [IO.Path]::GetFullPath($Laravel13PdoProbe.ca_path)
+       if (!$Laravel13CaPath.Equals($ApprovedDatabaseCaPath, [StringComparison]::OrdinalIgnoreCase)) {
+           throw 'Laravel 13 PDO CA option does not match the approved CA path.'
+       }
+   } elseif (![string]::IsNullOrWhiteSpace($Laravel13PdoProbe.ca_path)) {
+       throw 'Laravel 13 PDO has a CA option that is absent from the approved no-TLS policy.'
    }
    & 'C:\xampp\php85\php.exe' artisan migrate:status
    ```
 
    Confirm that this definitive PHP 8.5 status lists all 30 reviewed migration files and that its pending set exactly matches the database operator's approved list.
 
-7. **Second human approval gate:** the deployment operator and database operator must compare Laravel's host/port/name and live `SELECT DATABASE(), @@hostname, @@port` result to the approved identity, review the definitive PHP 8.5 migration status, reconfirm the upstream block/write-freeze, and explicitly authorize the single migration command below. Record the values, both approver names, and approval time. Do not continue on silence, assumption, status mismatch, write-freeze failure, or identity mismatch.
+7. **Second human approval gate:** the deployment operator and database operator must confirm that the PHP 8.5 Laravel PDO probe passed its parsed endpoint, live `SELECT DATABASE(), @@hostname, @@port`, `Ssl_cipher`, and CA-path checks; review the definitive PHP 8.5 migration status; reconfirm the upstream block/write-freeze; and explicitly authorize the single migration command below. Record the safe identity/TLS result, both approver names, and approval time. Do not continue on silence, assumption, status mismatch, write-freeze failure, or PDO identity/TLS mismatch.
 
    The commands `migrate:fresh`, `db:wipe`, SQL `DROP DATABASE`, recursive deletion, and any equivalent destructive reset are forbidden in production. Do not run migration rollback commands as part of cutover or recovery.
 
@@ -622,9 +740,10 @@ Rollback must restore a coherent Laravel 8/PHP 7.4 state. Apache must never serv
 - This document is a checklist, not a script. No production step runs automatically.
 - Production secrets are entered only through approved interactive prompts or the existing secret store; they are never command-line values or captured in evidence.
 - There is exactly one schema migration execution command in this runbook, and it requires a second human approval immediately before execution.
-- Laravel's database host, port, and name plus the live database name, server hostname, and port must match the approved identity. Every database client and DBA restore instruction uses the corresponding approved endpoint and TLS options.
+- Laravel 8 and Laravel 13 each establish their actual PDO connection before sensitive steps. Parsed `Connection::getConfig` endpoint fields (including a `DATABASE_URL` override), live database/server identity, negotiated TLS cipher, and configured CA path must match the approved policy without reading or printing connection credentials.
+- Every separate database client and DBA restore instruction uses the corresponding approved endpoint and TLS options.
 - The upstream traffic/write block, Laravel maintenance mode, and background-writer pause start before database/storage snapshots and remain active through cutover or rollback validation.
-- The backup root is pre-provisioned, encrypted, outside the web root, and ACL-restricted before any backup artifact is created; encryption material is never placed on the command line.
+- The backup root is pre-provisioned, encrypted, outside the web root, and ACL-restricted before any backup artifact is created; encryption material is never placed on the command line. ACL checks evaluate mutating rights individually, treat applicable deny rules as blocking, and require an actual create/write/read canary under the approved backup identity.
 - Archive checks fully read each listing before sampling, and the current dump must pass an isolated validation restore with matching schema/table counts before cutover.
 - Destructive reset, database-drop, recursive-delete, and reverse-migration commands are prohibited.
 - Apache stays stopped whenever application code and Apache PHP configuration do not belong to the same release.
