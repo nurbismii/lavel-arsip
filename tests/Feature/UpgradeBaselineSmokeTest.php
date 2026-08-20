@@ -190,5 +190,6 @@ PHP;
             trim($process->getErrorOutput().PHP_EOL.$process->getOutput())
         );
         $this->assertSame('loaded', $process->getOutput());
+        $this->assertSame('', $process->getErrorOutput());
     }
 }

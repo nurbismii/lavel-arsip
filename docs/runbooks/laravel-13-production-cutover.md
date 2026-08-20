@@ -10,7 +10,7 @@ This runbook is a human-operated checklist for a separately approved production 
 - Production root: `C:\xampp\htdocs\lavel-arsipin`
 - Target branch: `codex/upgrade-laravel13`
 - Staging evidence: `docs/verification/laravel-13-staging-results.md`
-- Expected migration files: **30**
+- Expected migration files: **32**
 
 Record these values before continuing:
 
@@ -40,7 +40,7 @@ The deployment operator owns the cutover journal. Record the result and timestam
 ## Approval gate
 
 - [ ] The change owner and production approver have approved the maintenance window and this exact commit.
-- [ ] Branch `codex/upgrade-laravel13` has passed the staging verification record, including 30 of 30 migrations, 32 tests, cache builds, Composer audit, and the production frontend build.
+- [ ] Branch `codex/upgrade-laravel13` has passed the staging verification record, including 32 of 32 migrations, 44 tests, cache builds, Composer audit, and the production frontend build.
 - [ ] The release artifact checksum matches the artifact built from the approved commit.
 - [ ] A tested PHP 8.5 Apache module/configuration set is available but is not active.
 - [ ] The current PHP 7.4 Apache configuration has a separately identifiable rollback copy.
@@ -191,12 +191,12 @@ Run from the current production release before changing code, runtime, configura
 
    Stop for any validation error or unresolved security advisory.
 
-4. Verify that the reviewed release contains exactly 30 migration files and that all 30 appear in the reviewed migration-status evidence. Record which entries are already `Ran` and which are expected `Pending`; every pending migration must have explicit database-operator approval.
+4. Verify that the reviewed release contains exactly 32 migration files and that all 32 appear in the reviewed migration-status evidence. Record which entries are already `Ran` and which are expected `Pending`; every pending migration must have explicit database-operator approval.
 
    ```powershell
    $MigrationCount = @(Get-ChildItem -LiteralPath (Join-Path $ReviewedReleaseRoot 'database\migrations') -File -Filter '*.php').Count
-   if ($MigrationCount -ne 30) {
-       throw "Expected 30 migration files; found $MigrationCount."
+   if ($MigrationCount -ne 32) {
+       throw "Expected 32 migration files; found $MigrationCount."
    }
    ```
 
@@ -542,7 +542,7 @@ The site is intentionally unavailable during this sequence. The approved upstrea
    & 'C:\xampp\php85\php.exe' artisan migrate:status
    ```
 
-   Confirm that this definitive PHP 8.5 status lists all 30 reviewed migration files and that its pending set exactly matches the database operator's approved list.
+   Confirm that this definitive PHP 8.5 status lists all 32 reviewed migration files and that its pending set exactly matches the database operator's approved list.
 
 7. **Second human approval gate:** the deployment operator and database operator must confirm that the PHP 8.5 Laravel PDO probe passed its parsed endpoint, live `SELECT DATABASE(), @@hostname, @@port`, `Ssl_cipher`, and CA-path checks; review the definitive PHP 8.5 migration status; reconfirm the upstream block/write-freeze; and explicitly authorize the single migration command below. Record the safe identity/TLS result, both approver names, and approval time. Do not continue on silence, assumption, status mismatch, write-freeze failure, or PDO identity/TLS mismatch.
 
