@@ -8,7 +8,7 @@
 - Production data copied: No
 - Migration result: 32 of 32 application migrations passed in batch 1
 - Route result: 75 routes loaded
-- PHPUnit result: 44 tests passed with 151 assertions
+- PHPUnit result: 45 tests passed with 157 assertions
 - Composer audit: Passed; no security vulnerability advisories found
 - Frontend install: Passed; `npm ci` installed 771 packages
 - Frontend build: Passed with Laravel Mix `6.0.49`
@@ -33,8 +33,8 @@ Before `migrate:fresh --force`, independent guards confirmed all of the followin
 - `artisan about` reported Laravel `13.26.1`, PHP `8.5.9`, environment `staging`, database driver `mysql`, file-backed cache/session, array mail, sync queue, and local filesystem storage.
 - `artisan route:list` loaded 75 routes.
 - Config, route, event, and Blade view caches were each built successfully, then `optimize:clear` completed successfully.
-- `artisan test` passed 44 tests with 151 assertions. The committed test configuration uses SQLite in-memory for test isolation; mail and notifications are faked. Storage regressions cover local and fake-R2 upload, inline/temporary-URL access, and deletion. A separate no-network regression temporarily resolves the configured R2 disk to the real Flysystem v3 AWS S3 adapter, then restores the fake.
-- Sanctum 4 expiry storage was verified through a real `User::createToken` call, a fresh indexed/nullable schema assertion, and the guarded additive migration path. The document-status rollback regression confirms expanded business outcomes are never silently coerced.
+- `artisan test` passed 45 tests with 157 assertions. The committed test configuration uses SQLite in-memory for test isolation; mail and notifications are faked. Storage regressions cover local and fake-R2 upload, inline/temporary-URL access, and deletion. A separate no-network regression temporarily resolves the configured R2 disk to the real Flysystem v3 AWS S3 adapter, then restores the fake.
+- Sanctum 4 expiry storage was verified through real `User::createToken` calls, a fresh indexed/nullable schema assertion, the guarded additive migration path, and deterministic `sanctum:prune-expired --hours=0` coverage proving only the expired token is deleted. The document-status rollback regression confirms expanded business outcomes are never silently coerced.
 
 ## Dependency and frontend evidence
 

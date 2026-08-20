@@ -40,7 +40,7 @@ The deployment operator owns the cutover journal. Record the result and timestam
 ## Approval gate
 
 - [ ] The change owner and production approver have approved the maintenance window and this exact commit.
-- [ ] Branch `codex/upgrade-laravel13` has passed the staging verification record, including 32 of 32 migrations, 44 tests, cache builds, Composer audit, and the production frontend build.
+- [ ] Branch `codex/upgrade-laravel13` has passed the staging verification record, including 32 of 32 migrations, 45 tests with 157 assertions, cache builds, Composer audit, and the production frontend build.
 - [ ] The release artifact checksum matches the artifact built from the approved commit.
 - [ ] A tested PHP 8.5 Apache module/configuration set is available but is not active.
 - [ ] The current PHP 7.4 Apache configuration has a separately identifiable rollback copy.

@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
@@ -56,6 +57,36 @@ class Laravel13UpgradeRegressionTest extends TestCase
 
         $this->assertSame(['documents:read'], $storedToken->abilities);
         $this->assertTrue($storedToken->expires_at->equalTo($expiresAt));
+    }
+
+    public function test_sanctum_prune_expired_deletes_only_expired_real_tokens(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-20 12:00:00'));
+
+        try {
+            $user = User::factory()->create();
+            $expiredToken = $user->createToken(
+                'expired-token',
+                ['documents:read'],
+                now()->subMinute()
+            )->accessToken;
+            $unexpiredToken = $user->createToken(
+                'unexpired-token',
+                ['documents:read'],
+                now()->addMinute()
+            )->accessToken;
+
+            $this->artisan('sanctum:prune-expired', ['--hours' => 0])
+                ->expectsOutputToContain('Pruning tokens with expired expires_at timestamps')
+                ->expectsOutputToContain('Expiration value not specified in configuration file.')
+                ->expectsOutputToContain('Tokens expired for more than [0 hours] pruned successfully.')
+                ->assertSuccessful();
+
+            $this->assertDatabaseMissing('personal_access_tokens', ['id' => $expiredToken->id]);
+            $this->assertDatabaseHas('personal_access_tokens', ['id' => $unexpiredToken->id]);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_guarded_sanctum_upgrade_adds_expiry_without_destructive_down(): void
