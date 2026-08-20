@@ -17,7 +17,7 @@
 
 ## Database isolation and migration evidence
 
-The local administrator connection was checked without an interactive credential prompt before creating the database. Only `arsipin_upgrade_staging` was created for this gate, using `utf8mb4` and `utf8mb4_unicode_ci`.
+The local administrator connection was validated without recording credentials. Only `arsipin_upgrade_staging` was created for this gate, using `utf8mb4` and `utf8mb4_unicode_ci`.
 
 Before `migrate:fresh --force`, independent guards confirmed all of the following:
 
@@ -26,7 +26,7 @@ Before `migrate:fresh --force`, independent guards confirmed all of the followin
 - Both the configured database and live connected database were exactly `arsipin_upgrade_staging`.
 - Migration files contained no detected external-service calls.
 
-`migrate:fresh --force` completed successfully. A subsequent `migrate:status` reported all 30 migrations as `Ran`; the staging migrations table also contained exactly 30 rows. No seed command was run, and no production rows or storage files were copied.
+`migrate:fresh --force` completed successfully. A subsequent `migrate:status` reported all 30 migrations as `Ran`; the staging migrations table also contained exactly 30 rows. The migration command was run without --seed. No production rows or storage files were copied.
 
 ## Application verification evidence
 
@@ -46,4 +46,4 @@ Before `migrate:fresh --force`, independent guards confirmed all of the followin
 
 ## External-service controls
 
-The staging runtime used local filesystem storage and array mail. R2 credentials, bucket, and endpoint were empty; no Google Drive credential file was present; Google workflows were not invoked. Tests faked mail, notifications, local storage, and R2. No external application data or production storage was accessed or copied.
+The staging runtime used local filesystem storage and array mail. R2 credentials, bucket, and endpoint were empty; no Google Drive credential file was present. Tests faked mail, notifications, local storage, and R2. No external workflows were invoked, and no production rows or storage files were copied.
