@@ -67,6 +67,10 @@
             <div class="app-card h-100">
                 <div class="card-body">
                     <h6 class="fw-semibold mb-3">Informasi Proses</h6>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Lokasi pelaksanaan</small>
+                        <div class="fw-semibold">{{ $alurKerja->lokasi ?: 'Belum ditentukan' }}</div>
+                    </div>
                     @if($alurKerja->deskripsi)
                         <div class="rich-text-content text-muted">{!! \App\Support\RichText::render($alurKerja->deskripsi) !!}</div>
                     @else

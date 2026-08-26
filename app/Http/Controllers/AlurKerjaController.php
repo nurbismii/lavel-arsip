@@ -34,6 +34,7 @@ class AlurKerjaController extends Controller
             $query->where(function ($query) use ($search) {
                 $query->where('nama', 'like', '%' . $search . '%')
                     ->orWhere('kode', 'like', '%' . $search . '%')
+                    ->orWhere('lokasi', 'like', '%' . $search . '%')
                     ->orWhere('deskripsi', 'like', '%' . $search . '%');
             });
         }
@@ -191,6 +192,7 @@ class AlurKerjaController extends Controller
             ],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
+            'lokasi' => ['nullable', 'string', 'max:255'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'pemilik_utama_user_id' => ['required', 'integer', 'exists:users,id'],
             'pemilik_cadangan_user_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -214,6 +216,10 @@ class AlurKerjaController extends Controller
         if (array_key_exists('estimasi', $data)) {
             $data['estimasi'] = trim((string) $data['estimasi']);
             $data['estimasi'] = $data['estimasi'] === '' ? null : $data['estimasi'];
+        }
+
+        if (array_key_exists('lokasi', $data)) {
+            $data['lokasi'] = $this->nullableTrimmedString($data['lokasi']);
         }
 
         if (!auth()->user()->canAccessAllFiles()) {

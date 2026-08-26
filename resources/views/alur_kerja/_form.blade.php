@@ -66,6 +66,22 @@
         @enderror
     </div>
 
+    <div class="col-md-8">
+        <label class="form-label">Lokasi Pelaksanaan</label>
+        <input
+            type="text"
+            name="lokasi"
+            class="form-control @error('lokasi') is-invalid @enderror"
+            value="{{ old('lokasi', optional($alurKerja)->lokasi) }}"
+            maxlength="255"
+            placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+        @error('lokasi')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @else
+            <small class="text-muted">Opsional. Isi tempat utama alur kerja ini dilakukan.</small>
+        @enderror
+    </div>
+
     <div class="col-md-4">
         <label class="form-label">Unit / Tim</label>
         <select name="team_id" class="form-select @error('team_id') is-invalid @enderror">
