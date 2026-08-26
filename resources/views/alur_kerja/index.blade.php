@@ -26,7 +26,7 @@
                     name="search"
                     value="{{ $search }}"
                     class="form-control"
-                    placeholder="Cari nama, kode, lokasi, atau deskripsi...">
+                    placeholder="Cari nama, kode, atau deskripsi...">
             </div>
             <div class="col-12 col-md-4 col-lg-2">
                 <label class="form-label">Prioritas</label>
@@ -76,7 +76,6 @@
                                         </a>
                                     </h6>
                                     <small class="text-muted d-block">Unit: {{ optional($alurKerja->team)->name ?: '-' }}</small>
-                                    <small class="text-muted d-block">Lokasi: {{ $alurKerja->lokasi ?: 'Belum ditentukan' }}</small>
                                     <small class="text-muted d-block">PIC utama: {{ optional($alurKerja->pemilikUtama)->name ?: '-' }}</small>
                                     <small class="text-muted d-block">Cadangan: {{ $alurKerja->pemilik_cadangan_label }}</small>
                                 </div>

@@ -26,7 +26,6 @@ class AlurKerja extends Model
         'kode',
         'nama',
         'deskripsi',
-        'lokasi',
         'team_id',
         'pemilik_utama_user_id',
         'pemilik_cadangan_user_id',

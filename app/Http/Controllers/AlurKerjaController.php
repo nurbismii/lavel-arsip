@@ -34,7 +34,6 @@ class AlurKerjaController extends Controller
             $query->where(function ($query) use ($search) {
                 $query->where('nama', 'like', '%' . $search . '%')
                     ->orWhere('kode', 'like', '%' . $search . '%')
-                    ->orWhere('lokasi', 'like', '%' . $search . '%')
                     ->orWhere('deskripsi', 'like', '%' . $search . '%');
             });
         }
@@ -192,7 +191,6 @@ class AlurKerjaController extends Controller
             ],
             'nama' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string'],
-            'lokasi' => ['nullable', 'string', 'max:255'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'pemilik_utama_user_id' => ['required', 'integer', 'exists:users,id'],
             'pemilik_cadangan_user_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -216,10 +214,6 @@ class AlurKerjaController extends Controller
         if (array_key_exists('estimasi', $data)) {
             $data['estimasi'] = trim((string) $data['estimasi']);
             $data['estimasi'] = $data['estimasi'] === '' ? null : $data['estimasi'];
-        }
-
-        if (array_key_exists('lokasi', $data)) {
-            $data['lokasi'] = $this->nullableTrimmedString($data['lokasi']);
         }
 
         if (!auth()->user()->canAccessAllFiles()) {
@@ -271,6 +265,7 @@ class AlurKerjaController extends Controller
             'tahap.*.urutan' => ['nullable', 'integer', 'min:1', 'max:999'],
             'tahap.*.nama' => ['nullable', 'string', 'max:255'],
             'tahap.*.deskripsi' => ['nullable', 'string'],
+            'tahap.*.lokasi' => ['nullable', 'string', 'max:255'],
             'tahap.*.estimasi' => ['nullable', 'string', 'max:100'],
             'tahap.*.aplikasi_digunakan' => ['nullable', 'string'],
             'tahap.*.akun_digunakan' => ['nullable', 'string'],
@@ -340,6 +335,7 @@ class AlurKerjaController extends Controller
                 'urutan' => $row['urutan'] ?? $nomorFallback,
                 'nama' => $row['nama'],
                 'deskripsi' => $row['deskripsi'] ?? null,
+                'lokasi' => $this->nullableTrimmedString($row['lokasi'] ?? null),
                 'estimasi' => $this->nullableTrimmedString($row['estimasi'] ?? null),
                 'aplikasi_digunakan' => $row['aplikasi_digunakan'] ?? null,
                 'akun_digunakan' => $row['akun_digunakan'] ?? null,

@@ -67,10 +67,6 @@
             <div class="app-card h-100">
                 <div class="card-body">
                     <h6 class="fw-semibold mb-3">Informasi Proses</h6>
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Lokasi pelaksanaan</small>
-                        <div class="fw-semibold">{{ $alurKerja->lokasi ?: 'Belum ditentukan' }}</div>
-                    </div>
                     @if($alurKerja->deskripsi)
                         <div class="rich-text-content text-muted">{!! \App\Support\RichText::render($alurKerja->deskripsi) !!}</div>
                     @else
@@ -145,9 +141,18 @@
                                         <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                                     @enderror
                                 </div>
-                                <div class="col-12">
+                                <div class="col-md-6">
                                     <label class="form-label">Deskripsi / Cara Kerja</label>
                                     <textarea name="deskripsi" rows="2" class="form-control">{{ old('deskripsi') }}</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Lokasi Pelaksanaan</label>
+                                    <input type="text" name="lokasi" class="form-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi') }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                                    @error('lokasi')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @else
+                                        <small class="text-muted">Opsional. Isi tempat tahap ini dilakukan.</small>
+                                    @enderror
                                 </div>
                                 @php
                                     $sistemTambahRows = old('sistem', [[]]);
@@ -229,6 +234,9 @@
                                     <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                                         <span class="badge bg-primary">Tahap {{ $tahap->urutan }}</span>
                                         <span class="badge bg-light text-secondary border">Estimasi: {{ $tahap->estimasi_label }}</span>
+                                        @if($tahap->lokasi)
+                                            <span class="badge bg-light text-secondary border">Lokasi: {{ $tahap->lokasi }}</span>
+                                        @endif
                                         @if($tahap->lampirans->count())
                                             <span class="badge bg-light text-dark border">{{ $tahap->lampirans->count() }} file/template</span>
                                         @endif
@@ -427,9 +435,18 @@
                                                         <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                                                     @enderror
                                                 </div>
-                                                <div class="col-12">
+                                                <div class="col-md-6">
                                                     <label class="form-label">Deskripsi / Cara Kerja</label>
                                                     <textarea name="deskripsi" rows="2" class="form-control">{{ old('deskripsi', $tahap->deskripsi) }}</textarea>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Lokasi Pelaksanaan</label>
+                                                    <input type="text" name="lokasi" class="form-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi', $tahap->lokasi) }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                                                    @error('lokasi')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @else
+                                                        <small class="text-muted">Opsional. Isi tempat tahap ini dilakukan.</small>
+                                                    @enderror
                                                 </div>
                                                 @php
                                                     $sistemEditRows = old('sistem', $tahap->sistems->map(function ($sistem) {

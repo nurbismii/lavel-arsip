@@ -51,6 +51,7 @@
                             'urutan' => 1,
                             'nama' => '',
                             'deskripsi' => '',
+                            'lokasi' => '',
                             'estimasi' => '',
                             'aplikasi_digunakan' => '',
                             'akun_digunakan' => '',
@@ -111,9 +112,18 @@
                                         <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                                     @enderror
                                 </div>
-                                <div class="col-12">
+                                <div class="col-md-6">
                                     <label class="form-label">Deskripsi / Cara Kerja</label>
                                     <textarea name="tahap[{{ $index }}][deskripsi]" rows="2" class="form-control" placeholder="Jelaskan aktivitas utama pada tahap ini.">{{ old('tahap.' . $index . '.deskripsi', data_get($tahap, 'deskripsi')) }}</textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Lokasi Pelaksanaan</label>
+                                    <input type="text" name="tahap[{{ $index }}][lokasi]" class="form-control @error('tahap.' . $index . '.lokasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.lokasi', data_get($tahap, 'lokasi')) }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                                    @error('tahap.' . $index . '.lokasi')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @else
+                                        <small class="text-muted">Opsional. Isi tempat tahap ini dilakukan.</small>
+                                    @enderror
                                 </div>
 
                                 <div class="col-12 workflow-optional-section" data-structured-scope data-optional-section data-optional-enabled="{{ $sistemEnabled ? '1' : '0' }}">
@@ -366,9 +376,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     <input type="text" name="tahap[${index}][estimasi]" class="form-control" placeholder="Contoh: 2 jam / 1 hari kerja" data-stage-estimate-input>
                     <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                 </div>
-                <div class="col-12">
+                <div class="col-md-6">
                     <label class="form-label">Deskripsi / Cara Kerja</label>
                     <textarea name="tahap[${index}][deskripsi]" rows="2" class="form-control" placeholder="Jelaskan aktivitas utama pada tahap ini."></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Lokasi Pelaksanaan</label>
+                    <input type="text" name="tahap[${index}][lokasi]" class="form-control" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                    <small class="text-muted">Opsional. Isi tempat tahap ini dilakukan.</small>
                 </div>
                 <div class="col-12 workflow-optional-section" data-structured-scope data-optional-section data-optional-enabled="0">
                     <div class="d-flex justify-content-between align-items-center gap-2 mb-2">

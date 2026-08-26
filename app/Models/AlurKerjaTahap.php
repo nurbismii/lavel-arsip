@@ -13,6 +13,7 @@ class AlurKerjaTahap extends Model
         'urutan',
         'nama',
         'deskripsi',
+        'lokasi',
         'estimasi',
         'aplikasi_digunakan',
         'akun_digunakan',

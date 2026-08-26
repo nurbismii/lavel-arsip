@@ -78,6 +78,17 @@ class UpgradeBaselineSmokeTest extends TestCase
         }
     }
 
+    public function test_authenticated_layout_does_not_load_bootstrap_javascript_twice(): void
+    {
+        $user = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
+        $this->actingAs($user)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertSee(asset('js/app.js'), false)
+            ->assertDontSee('bootstrap.bundle.min.js', false);
+    }
+
     public function test_only_admin_can_open_user_management(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
