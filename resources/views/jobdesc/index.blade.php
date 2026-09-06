@@ -44,7 +44,7 @@
                         <td><span class="badge {{ $item->status_badge_class }}">{{ $item->status_label }}</span></td>
                         <td>{{ $item->pemilik->name ?? '-' }}</td>
                         <td>
-                            <div class="d-flex justify-content-end gap-2"><a href="{{ route('jobdesc.show', $item) }}" class="btn btn-sm btn-outline-primary">Lihat</a>@if(auth()->user()->canAccessAllFiles() || $item->pemilik_user_id === auth()->id())<a href="{{ route('jobdesc.edit', $item) }}" class="btn btn-sm btn-outline-warning">Ubah</a>@endif</div>
+                            <div class="d-flex justify-content-end gap-2"><a href="{{ route('jobdesc.print', $item) }}" class="btn btn-sm btn-outline-secondary text-nowrap">Cetak PDF</a><a href="{{ route('jobdesc.show', $item) }}" class="btn btn-sm btn-outline-primary">Lihat</a>@if(auth()->user()->canAccessAllFiles() || $item->pemilik_user_id === auth()->id())<a href="{{ route('jobdesc.edit', $item) }}" class="btn btn-sm btn-outline-warning">Ubah</a>@endif</div>
                         </td>
                     </tr>@endforeach</tbody>
             </table>

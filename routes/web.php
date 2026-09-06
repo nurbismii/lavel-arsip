@@ -48,6 +48,7 @@ Route::middleware('check.login')->group(function () {
     Route::get('/sop-pengetahuan/{sopPengetahuan}/lampiran/{lampiran}', [SopPengetahuanController::class, 'showLampiran'])->name('sop-pengetahuan.lampiran.show');
     Route::delete('/sop-pengetahuan/{sopPengetahuan}/lampiran/{lampiran}', [SopPengetahuanController::class, 'destroyLampiran'])->name('sop-pengetahuan.lampiran.destroy');
     Route::resource('sop-pengetahuan', SopPengetahuanController::class);
+    Route::get('/jobdesc/{jobdesc}/print', [JobdescController::class, 'print'])->name('jobdesc.print');
     Route::resource('jobdesc', JobdescController::class);
     Route::resource('pekerjaan', PekerjaanController::class);
     Route::get('/lokasi-dokumen', [LokasiDokumenController::class, 'index'])->name('lokasi-dokumen.index');

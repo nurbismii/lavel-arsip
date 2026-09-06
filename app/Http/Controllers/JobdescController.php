@@ -37,6 +37,14 @@ class JobdescController extends Controller
         $this->authorizeView($jobdesc);
         return view('jobdesc.show', ['jobdesc' => $jobdesc->load(['team', 'pemilik']), 'canManage' => $this->canManage($jobdesc)]);
     }
+    public function print(Jobdesc $jobdesc)
+    {
+        $this->authorizeView($jobdesc);
+
+        return response()->view('jobdesc.print', compact('jobdesc'))
+            ->header('Cache-Control', 'private, no-store');
+    }
+
     public function edit(Jobdesc $jobdesc)
     {
         $this->authorizeManage($jobdesc);

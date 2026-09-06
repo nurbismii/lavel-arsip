@@ -37,7 +37,7 @@
                             role="button"
                             data-bs-toggle="dropdown"
                             aria-expanded="false">
-                            Organization Development
+                            Organisation Development
                         </a>
                         <div class="dropdown-menu shadow-sm border-0 rounded-3 mt-2" aria-labelledby="prosesKerjaDropdown">
                             <a class="dropdown-item {{ request()->is('alur-kerja*') ? 'active' : '' }}"
