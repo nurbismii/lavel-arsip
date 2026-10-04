@@ -22,7 +22,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">Nama Lokasi</label>
-                    <input type="text" name="nama_lokasi" class="form-control" value="{{ old('nama_lokasi', $lokasi->nama_lokasi) }}" required>
+                    <input type="text" name="nama_lokasi" class="form-control" value="{{ old('nama_lokasi', $lokasi->nama_lokasi) }}" required data-character-limit="255">
                 </div>
 
                 <div class="d-flex gap-2">

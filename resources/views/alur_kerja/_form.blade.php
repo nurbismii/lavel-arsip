@@ -35,7 +35,7 @@
             name="kode"
             class="form-control @error('kode') is-invalid @enderror"
             value="{{ old('kode', optional($alurKerja)->kode) }}"
-            placeholder="OPS-001">
+            placeholder="OPS-001" data-character-limit="50">
         @error('kode')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
@@ -48,7 +48,7 @@
             name="nama"
             class="form-control @error('nama') is-invalid @enderror"
             value="{{ old('nama', optional($alurKerja)->nama) }}"
-            required>
+            required data-character-limit="255">
         @error('nama')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
@@ -60,7 +60,7 @@
             name="deskripsi"
             rows="4"
             class="form-control @error('deskripsi') is-invalid @enderror"
-            placeholder="Ringkas proses, batasan, dan konteks operasional.">{{ old('deskripsi', optional($alurKerja)->deskripsi) }}</textarea>
+            placeholder="Ringkas proses, batasan, dan konteks operasional." data-character-limit="none">{{ old('deskripsi', optional($alurKerja)->deskripsi) }}</textarea>
         @error('deskripsi')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
@@ -162,7 +162,7 @@
             maxlength="100"
             readonly
             data-workflow-total-estimate
-            placeholder="Contoh: 2 hari atau 1-2 hari, 3 jam, dst.">
+            placeholder="Contoh: 2 hari atau 1-2 hari, 3 jam, dst." data-character-limit="100">
         @error('estimasi')
             <div class="invalid-feedback">{{ $message }}</div>
         @else

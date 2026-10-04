@@ -98,14 +98,14 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Nama Tahap</label>
-                                    <input type="text" name="tahap[{{ $index }}][nama]" class="form-control @error('tahap.' . $index . '.nama') is-invalid @enderror" value="{{ old('tahap.' . $index . '.nama', data_get($tahap, 'nama')) }}" placeholder="Contoh: Tahapan pertama dari alur kerja ini">
+                                    <input type="text" name="tahap[{{ $index }}][nama]" class="form-control @error('tahap.' . $index . '.nama') is-invalid @enderror" value="{{ old('tahap.' . $index . '.nama', data_get($tahap, 'nama')) }}" placeholder="Contoh: Tahapan pertama dari alur kerja ini" data-character-limit="255">
                                     @error('tahap.' . $index . '.nama')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Estimasi Pengerjaan</label>
-                                    <input type="text" name="tahap[{{ $index }}][estimasi]" class="form-control @error('tahap.' . $index . '.estimasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.estimasi', data_get($tahap, 'estimasi')) }}" placeholder="Contoh: 2 jam / 1 hari kerja" data-stage-estimate-input>
+                                    <input type="text" name="tahap[{{ $index }}][estimasi]" class="form-control @error('tahap.' . $index . '.estimasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.estimasi', data_get($tahap, 'estimasi')) }}" placeholder="Contoh: 2 jam / 1 hari kerja" data-stage-estimate-input data-character-limit="100">
                                     @error('tahap.' . $index . '.estimasi')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
@@ -114,11 +114,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Deskripsi / Cara Kerja</label>
-                                    <textarea name="tahap[{{ $index }}][deskripsi]" rows="2" class="form-control" placeholder="Jelaskan aktivitas utama pada tahap ini.">{{ old('tahap.' . $index . '.deskripsi', data_get($tahap, 'deskripsi')) }}</textarea>
+                                    <textarea name="tahap[{{ $index }}][deskripsi]" rows="2" class="form-control" placeholder="Jelaskan aktivitas utama pada tahap ini." data-character-limit="none">{{ old('tahap.' . $index . '.deskripsi', data_get($tahap, 'deskripsi')) }}</textarea>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Lokasi Pelaksanaan</label>
-                                    <input type="text" name="tahap[{{ $index }}][lokasi]" class="form-control @error('tahap.' . $index . '.lokasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.lokasi', data_get($tahap, 'lokasi')) }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                                    <input type="text" name="tahap[{{ $index }}][lokasi]" class="form-control @error('tahap.' . $index . '.lokasi') is-invalid @enderror" value="{{ old('tahap.' . $index . '.lokasi', data_get($tahap, 'lokasi')) }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote" data-character-limit="255">
                                     @error('tahap.' . $index . '.lokasi')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
@@ -174,7 +174,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Catatan Tambahan</label>
-                                    <textarea name="tahap[{{ $index }}][catatan]" rows="2" class="form-control" placeholder="Hal khusus, risiko, atau pengecualian.">{{ old('tahap.' . $index . '.catatan', data_get($tahap, 'catatan')) }}</textarea>
+                                    <textarea name="tahap[{{ $index }}][catatan]" rows="2" class="form-control" placeholder="Hal khusus, risiko, atau pengecualian." data-character-limit="none">{{ old('tahap.' . $index . '.catatan', data_get($tahap, 'catatan')) }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -369,20 +369,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Nama Tahap</label>
-                    <input type="text" name="tahap[${index}][nama]" class="form-control" placeholder="Contoh: Verifikasi berkas online">
+                    <input type="text" name="tahap[${index}][nama]" class="form-control" placeholder="Contoh: Verifikasi berkas online" data-character-limit="255">
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Estimasi Pengerjaan</label>
-                    <input type="text" name="tahap[${index}][estimasi]" class="form-control" placeholder="Contoh: 2 jam / 1 hari kerja" data-stage-estimate-input>
+                    <input type="text" name="tahap[${index}][estimasi]" class="form-control" placeholder="Contoh: 2 jam / 1 hari kerja" data-stage-estimate-input data-character-limit="100">
                     <small class="text-muted">Isi perkiraan durasi untuk menyelesaikan tahap ini.</small>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Deskripsi / Cara Kerja</label>
-                    <textarea name="tahap[${index}][deskripsi]" rows="2" class="form-control" placeholder="Jelaskan aktivitas utama pada tahap ini."></textarea>
+                    <textarea name="tahap[${index}][deskripsi]" rows="2" class="form-control" placeholder="Jelaskan aktivitas utama pada tahap ini." data-character-limit="none"></textarea>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Lokasi Pelaksanaan</label>
-                    <input type="text" name="tahap[${index}][lokasi]" class="form-control" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                    <input type="text" name="tahap[${index}][lokasi]" class="form-control" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote" data-character-limit="255">
                     <small class="text-muted">Opsional. Isi tempat tahap ini dilakukan.</small>
                 </div>
                 <div class="col-12 workflow-optional-section" data-structured-scope data-optional-section data-optional-enabled="0">
@@ -410,23 +410,23 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label">Nama Sistem</label>
-                                        <input type="text" name="tahap[${index}][sistem][0][nama_sistem]" class="form-control" placeholder="Contoh: HRIS, Email, Google Form">
+                                        <input type="text" name="tahap[${index}][sistem][0][nama_sistem]" class="form-control" placeholder="Contoh: HRIS, Email, Google Form" data-character-limit="255">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Akun yang Digunakan</label>
-                                        <input type="text" name="tahap[${index}][sistem][0][akun]" class="form-control" placeholder="Contoh: recruitment@company.com">
+                                        <input type="text" name="tahap[${index}][sistem][0][akun]" class="form-control" placeholder="Contoh: recruitment@company.com" data-character-limit="none">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Fungsi</label>
-                                        <textarea name="tahap[${index}][sistem][0][fungsi]" rows="2" class="form-control" placeholder="Dipakai untuk apa pada tahap ini"></textarea>
+                                        <textarea name="tahap[${index}][sistem][0][fungsi]" rows="2" class="form-control" placeholder="Dipakai untuk apa pada tahap ini" data-character-limit="none"></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">URL / Lokasi Akses</label>
-                                        <input type="text" name="tahap[${index}][sistem][0][url]" class="form-control" placeholder="https://... atau lokasi aplikasi">
+                                        <input type="text" name="tahap[${index}][sistem][0][url]" class="form-control" placeholder="https://... atau lokasi aplikasi" data-character-limit="500">
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Catatan Akses</label>
-                                        <textarea name="tahap[${index}][sistem][0][catatan]" rows="2" class="form-control" placeholder="Hak akses, batasan, atau prosedur login"></textarea>
+                                        <textarea name="tahap[${index}][sistem][0][catatan]" rows="2" class="form-control" placeholder="Hak akses, batasan, atau prosedur login" data-character-limit="none"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -461,23 +461,23 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label">Nama PIC</label>
-                                        <input type="text" name="tahap[${index}][pic][0][nama]" class="form-control" placeholder="Nama orang atau tim">
+                                        <input type="text" name="tahap[${index}][pic][0][nama]" class="form-control" placeholder="Nama orang atau tim" data-character-limit="255">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Peran</label>
-                                        <input type="text" name="tahap[${index}][pic][0][peran]" class="form-control" placeholder="Contoh: HR Recruitment, Kepala Departemen">
+                                        <input type="text" name="tahap[${index}][pic][0][peran]" class="form-control" placeholder="Contoh: HR Recruitment, Kepala Departemen" data-character-limit="255">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Kontak</label>
-                                        <input type="text" name="tahap[${index}][pic][0][kontak]" class="form-control" placeholder="Email, nomor HP, extension">
+                                        <input type="text" name="tahap[${index}][pic][0][kontak]" class="form-control" placeholder="Email, nomor HP, extension" data-character-limit="500">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Kapan Dihubungi</label>
-                                        <input type="text" name="tahap[${index}][pic][0][waktu_dihubungi]" class="form-control" placeholder="Contoh: setelah verifikasi online selesai">
+                                        <input type="text" name="tahap[${index}][pic][0][waktu_dihubungi]" class="form-control" placeholder="Contoh: setelah verifikasi online selesai" data-character-limit="none">
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Catatan</label>
-                                        <textarea name="tahap[${index}][pic][0][catatan]" rows="2" class="form-control" placeholder="Hal khusus terkait PIC ini"></textarea>
+                                        <textarea name="tahap[${index}][pic][0][catatan]" rows="2" class="form-control" placeholder="Hal khusus terkait PIC ini" data-character-limit="none"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Catatan Tambahan</label>
-                    <textarea name="tahap[${index}][catatan]" rows="2" class="form-control" placeholder="Hal khusus, risiko, atau pengecualian."></textarea>
+                    <textarea name="tahap[${index}][catatan]" rows="2" class="form-control" placeholder="Hal khusus, risiko, atau pengecualian." data-character-limit="none"></textarea>
                 </div>
             </div>
         `;

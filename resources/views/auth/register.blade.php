@@ -29,7 +29,7 @@
                                 name="name"
                                 placeholder="Nama lengkap"
                                 value="{{ old('name') }}"
-                                required autofocus>
+                                required autofocus data-character-limit="255">
                             <label for="name">Nama Lengkap</label>
 
                             @error('name')
@@ -47,7 +47,7 @@
                                 name="email"
                                 placeholder="name@example.com"
                                 value="{{ old('email') }}"
-                                required>
+                                required data-character-limit="255">
                             <label for="email">Email</label>
 
                             @error('email')
@@ -64,7 +64,7 @@
                                 id="password"
                                 name="password"
                                 placeholder="Password"
-                                required>
+                                required data-character-limit="none">
                             <label for="password">Password</label>
 
                             @error('password')
@@ -81,7 +81,7 @@
                                 id="password-confirm"
                                 name="password_confirmation"
                                 placeholder="Konfirmasi Password"
-                                required>
+                                required data-character-limit="none">
                             <label for="password-confirm">Konfirmasi Password</label>
                         </div>
 

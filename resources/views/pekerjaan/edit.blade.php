@@ -35,7 +35,7 @@
 
         <div class="mb-3">
             <label>Judul</label>
-            <input type="text" name="judul" class="form-control" value="{{ old('judul', $pekerjaan->judul) }}">
+            <input type="text" name="judul" class="form-control" value="{{ old('judul', $pekerjaan->judul) }}" data-character-limit="255">
         </div>
 
         <div class="mb-3">
@@ -47,7 +47,7 @@
                 class="form-control"
                 placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini."
                 aria-describedby="deskripsi-help"
-                data-rich-text>{{ \App\Support\RichText::sanitizeDocument(old('deskripsi', $pekerjaan->deskripsi)) }}</textarea>
+                data-rich-text data-character-limit="none">{{ \App\Support\RichText::sanitizeDocument(old('deskripsi', $pekerjaan->deskripsi)) }}</textarea>
             <small id="deskripsi-help" class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
         </div>
 

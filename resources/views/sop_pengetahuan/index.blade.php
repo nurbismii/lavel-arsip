@@ -22,7 +22,7 @@
                     name="search"
                     value="{{ $search }}"
                     class="form-control"
-                    placeholder="Cari judul, kode, isi, atau kata kunci...">
+                    placeholder="Cari judul, kode, isi, atau kata kunci..." data-character-limit="none">
             </div>
             <div class="col-12 col-md-4 col-lg-2">
                 <label class="form-label">Status</label>

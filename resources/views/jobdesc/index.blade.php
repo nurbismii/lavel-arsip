@@ -10,7 +10,7 @@
     </div>
     <div class="filter-panel">
         <form class="row g-3 align-items-end">
-            <div class="col-md-6"><label class="form-label">Pencarian</label><input name="search" value="{{ $search }}" class="form-control" placeholder="Cari jabatan, job code, divisi, atau departemen"></div>
+            <div class="col-md-6"><label class="form-label">Pencarian</label><input name="search" value="{{ $search }}" class="form-control" placeholder="Cari jabatan, job code, divisi, atau departemen" data-character-limit="none"></div>
             <div class="col-md-3"><label class="form-label">Status</label><select name="status" class="form-select">
                     <option value="">Semua status</option>@foreach($statusOptions as $value => $label)<option value="{{ $value }}" @selected($status===$value)>{{ $label }}</option>@endforeach
                 </select></div>

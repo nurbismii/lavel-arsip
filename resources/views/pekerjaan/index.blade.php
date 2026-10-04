@@ -196,7 +196,7 @@
                 name="search"
                 value="{{ $search }}"
                 class="form-control"
-                placeholder="Cari judul utama atau sub judul...">
+                placeholder="Cari judul utama atau sub judul..." data-character-limit="none">
         </div>
         <div class="col-12 col-md-6 col-lg-3">
             <select name="status_dokumen" class="form-control">

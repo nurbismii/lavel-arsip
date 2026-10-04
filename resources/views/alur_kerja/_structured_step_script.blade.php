@@ -14,23 +14,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="row g-2">
                     <div class="col-md-6">
                         <label class="form-label">Nama Sistem</label>
-                        <input type="text" name="${prefix}[${index}][nama_sistem]" class="form-control" placeholder="Contoh: HRIS, Email, Google Form">
+                        <input type="text" name="${prefix}[${index}][nama_sistem]" class="form-control" placeholder="Contoh: HRIS, Email, Google Form" data-character-limit="255">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Akun yang Digunakan</label>
-                        <input type="text" name="${prefix}[${index}][akun]" class="form-control" placeholder="Contoh: recruitment@company.com">
+                        <input type="text" name="${prefix}[${index}][akun]" class="form-control" placeholder="Contoh: recruitment@company.com" data-character-limit="none">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Fungsi</label>
-                        <textarea name="${prefix}[${index}][fungsi]" rows="2" class="form-control" placeholder="Dipakai untuk apa pada tahap ini"></textarea>
+                        <textarea name="${prefix}[${index}][fungsi]" rows="2" class="form-control" placeholder="Dipakai untuk apa pada tahap ini" data-character-limit="none"></textarea>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">URL / Lokasi Akses</label>
-                        <input type="text" name="${prefix}[${index}][url]" class="form-control" placeholder="https://... atau lokasi aplikasi">
+                        <input type="text" name="${prefix}[${index}][url]" class="form-control" placeholder="https://... atau lokasi aplikasi" data-character-limit="500">
                     </div>
                     <div class="col-12">
                         <label class="form-label">Catatan Akses</label>
-                        <textarea name="${prefix}[${index}][catatan]" rows="2" class="form-control" placeholder="Hak akses, batasan, atau prosedur login"></textarea>
+                        <textarea name="${prefix}[${index}][catatan]" rows="2" class="form-control" placeholder="Hak akses, batasan, atau prosedur login" data-character-limit="none"></textarea>
                     </div>
                 </div>
             </div>
@@ -51,23 +51,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="row g-2">
                     <div class="col-md-6">
                         <label class="form-label">Nama PIC</label>
-                        <input type="text" name="${prefix}[${index}][nama]" class="form-control" placeholder="Nama orang atau tim">
+                        <input type="text" name="${prefix}[${index}][nama]" class="form-control" placeholder="Nama orang atau tim" data-character-limit="255">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Peran</label>
-                        <input type="text" name="${prefix}[${index}][peran]" class="form-control" placeholder="Contoh: HR Recruitment, Kepala Departemen">
+                        <input type="text" name="${prefix}[${index}][peran]" class="form-control" placeholder="Contoh: HR Recruitment, Kepala Departemen" data-character-limit="255">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Kontak</label>
-                        <input type="text" name="${prefix}[${index}][kontak]" class="form-control" placeholder="Email, nomor HP, extension">
+                        <input type="text" name="${prefix}[${index}][kontak]" class="form-control" placeholder="Email, nomor HP, extension" data-character-limit="500">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Kapan Dihubungi</label>
-                        <input type="text" name="${prefix}[${index}][waktu_dihubungi]" class="form-control" placeholder="Contoh: setelah verifikasi online selesai">
+                        <input type="text" name="${prefix}[${index}][waktu_dihubungi]" class="form-control" placeholder="Contoh: setelah verifikasi online selesai" data-character-limit="none">
                     </div>
                     <div class="col-12">
                         <label class="form-label">Catatan</label>
-                        <textarea name="${prefix}[${index}][catatan]" rows="2" class="form-control" placeholder="Hal khusus terkait PIC ini"></textarea>
+                        <textarea name="${prefix}[${index}][catatan]" rows="2" class="form-control" placeholder="Hal khusus terkait PIC ini" data-character-limit="none"></textarea>
                     </div>
                 </div>
             </div>

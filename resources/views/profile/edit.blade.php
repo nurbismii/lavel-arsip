@@ -41,7 +41,7 @@
                                 id="name"
                                 name="name"
                                 value="{{ old('name', $user->name) }}"
-                                required>
+                                required data-character-limit="255">
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -55,7 +55,7 @@
                                 id="email"
                                 name="email"
                                 value="{{ old('email', $user->email) }}"
-                                required>
+                                required data-character-limit="255">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -72,7 +72,7 @@
                                 class="form-control @error('current_password') is-invalid @enderror"
                                 id="current_password"
                                 name="current_password"
-                                autocomplete="current-password">
+                                autocomplete="current-password" data-character-limit="none">
                             @error('current_password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -85,7 +85,7 @@
                                 class="form-control @error('password') is-invalid @enderror"
                                 id="password"
                                 name="password"
-                                autocomplete="new-password">
+                                autocomplete="new-password" data-character-limit="none">
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -98,7 +98,7 @@
                                 class="form-control"
                                 id="password_confirmation"
                                 name="password_confirmation"
-                                autocomplete="new-password">
+                                autocomplete="new-password" data-character-limit="none">
                         </div>
 
                         <div class="d-flex flex-column flex-sm-row gap-2 justify-content-end">

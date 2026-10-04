@@ -148,7 +148,7 @@ class PekerjaanController extends Controller
 
         $this->applyVisiblePekerjaanScope($query);
 
-        $query->orderBy('id');
+        $query->latest('created_at')->orderByDesc('id');
 
         $rootIdFilters = [];
 
@@ -198,7 +198,7 @@ class PekerjaanController extends Controller
                     $query->where('status_dokumen', $statusDokumen);
                 }
 
-                $query->with(['buktiPenyelesaians', 'peminjam'])->orderBy('id');
+                $query->with(['buktiPenyelesaians', 'peminjam'])->latest('created_at')->orderByDesc('id');
             },
             'subPekerjaans' => function ($query) use ($statusDokumen, $relatedPekerjaanIdsByStatus) {
                 $this->applyVisiblePekerjaanScope($query);
@@ -230,7 +230,7 @@ class PekerjaanController extends Controller
                             }
                         },
                     ])
-                    ->orderBy('id');
+                    ->latest('created_at')->orderByDesc('id');
             },
         ]);
 

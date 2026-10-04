@@ -56,7 +56,7 @@
                     value="{{ old('judul', optional($sopPengetahuan)->judul) }}"
                     placeholder="Contoh: Rekrutmen Karyawan"
                     data-sop-title-input
-                    required>
+                    required data-character-limit="255">
                 @error('judul')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -129,7 +129,7 @@
                     name="kata_kunci"
                     class="form-control @error('kata_kunci') is-invalid @enderror"
                     value="{{ old('kata_kunci', optional($sopPengetahuan)->kata_kunci) }}"
-                    placeholder="Contoh: arsip, verifikasi, rekrutmen">
+                    placeholder="Contoh: arsip, verifikasi, rekrutmen" data-character-limit="500">
                 @error('kata_kunci')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -154,7 +154,7 @@
                             class="form-control @error('kode') is-invalid @enderror"
                             value="{{ old('kode', optional($sopPengetahuan)->kode) }}"
                             placeholder="02-0001/SOP/HRD-VDNI/VIII/2025"
-                            data-sop-code-input>
+                            data-sop-code-input data-character-limit="50">
                         @error('kode')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -168,7 +168,7 @@
                             class="form-control @error('nomor_revisi') is-invalid @enderror"
                             value="{{ old('nomor_revisi', optional($sopPengetahuan)->nomor_revisi ?: '000') }}"
                             placeholder="000"
-                            data-sop-revision-input>
+                            data-sop-revision-input data-character-limit="50">
                         @error('nomor_revisi')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -270,7 +270,7 @@
                 data-rich-text-mode="document"
                 data-sop-document-editor
                 class="form-control @error('konten') is-invalid @enderror"
-                placeholder="Mulai tulis dokumen SOP di sini. Gunakan tombol Sisipkan KOP untuk membuat header dokumen.">{{ $documentContent }}</textarea>
+                placeholder="Mulai tulis dokumen SOP di sini. Gunakan tombol Sisipkan KOP untuk membuat header dokumen." data-character-limit="none">{{ $documentContent }}</textarea>
         </div>
     </div>
 

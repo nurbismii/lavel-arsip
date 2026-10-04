@@ -38,7 +38,7 @@
 
                 <div class="col-md-8 col-lg-9">
                     <label class="form-label">Nama Tim / Divisi</label>
-                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Contoh: Finance, Operasional, Legal" required>
+                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Contoh: Finance, Operasional, Legal" required data-character-limit="255">
                 </div>
 
                 <div class="col-md-4 col-lg-3">
@@ -71,7 +71,7 @@
                             <form id="update-team-{{ $team->id }}" method="POST" action="{{ route('teams.update', $team->id) }}">
                                 @csrf
                                 @method('PATCH')
-                                <input type="text" name="name" class="form-control" value="{{ old('name', $team->name) }}" required>
+                                <input type="text" name="name" class="form-control" value="{{ old('name', $team->name) }}" required data-character-limit="255">
                             </form>
                         </td>
                         <td>{{ $team->users_count }} user</td>

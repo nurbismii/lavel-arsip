@@ -36,7 +36,7 @@
                 {{-- Judul --}}
                 <div class="mb-3">
                     <label>Judul</label>
-                    <input type="text" name="judul" class="form-control" value="{{ old('judul') }}" required>
+                    <input type="text" name="judul" class="form-control" value="{{ old('judul') }}" required data-character-limit="255">
                 </div>
 
                 <div class="mb-3">
@@ -48,7 +48,7 @@
                         class="form-control"
                         placeholder="Jelaskan konteks, tujuan, atau kronologi dokumen/pekerjaan ini."
                         aria-describedby="deskripsi-help"
-                        data-rich-text>{{ \App\Support\RichText::sanitizeDocument(old('deskripsi')) }}</textarea>
+                        data-rich-text data-character-limit="none">{{ \App\Support\RichText::sanitizeDocument(old('deskripsi')) }}</textarea>
                     <small id="deskripsi-help" class="text-muted">Informasi ini membantu penelusuran dokumen di kemudian hari.</small>
                 </div>
 
@@ -299,7 +299,7 @@
                 ✕
             </button>
 
-            <input type="text" name="sub_judul[${subIndex}]" class="form-control mb-2" placeholder="Judul Sub">
+            <input type="text" name="sub_judul[${subIndex}]" class="form-control mb-2" placeholder="Judul Sub" data-character-limit="255">
 
             <label for="sub-deskripsi-${subIndex}" class="form-label small text-muted mb-1">Deskripsi / Kronologi <span class="text-muted">(opsional)</span></label>
             <textarea
@@ -309,7 +309,7 @@
                 class="form-control mb-2"
                 placeholder="Jelaskan konteks atau kronologi sub dokumen ini."
                 data-rich-text
-                data-rich-text-compact="true"></textarea>
+                data-rich-text-compact="true" data-character-limit="none"></textarea>
 
             <small class="text-muted d-block mb-2">
                 Lokasi sub pekerjaan akan mengikuti lokasi pekerjaan utama saat disimpan.

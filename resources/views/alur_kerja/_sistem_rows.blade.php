@@ -27,7 +27,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][nama_sistem]"
                         class="form-control @error($errorPrefix . '.' . $rowIndex . '.nama_sistem') is-invalid @enderror"
                         value="{{ data_get($sistem, 'nama_sistem') }}"
-                        placeholder="Contoh: HRIS, Email, Google Form">
+                        placeholder="Contoh: HRIS, Email, Google Form" data-character-limit="255">
                     @error($errorPrefix . '.' . $rowIndex . '.nama_sistem')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -40,7 +40,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][akun]"
                         class="form-control"
                         value="{{ data_get($sistem, 'akun') }}"
-                        placeholder="Contoh: recruitment@company.com">
+                        placeholder="Contoh: recruitment@company.com" data-character-limit="none">
                 </div>
 
                 <div class="col-md-6">
@@ -49,7 +49,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][fungsi]"
                         rows="2"
                         class="form-control"
-                        placeholder="Dipakai untuk apa pada tahap ini">{{ data_get($sistem, 'fungsi') }}</textarea>
+                        placeholder="Dipakai untuk apa pada tahap ini" data-character-limit="none">{{ data_get($sistem, 'fungsi') }}</textarea>
                 </div>
 
                 <div class="col-md-6">
@@ -59,7 +59,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][url]"
                         class="form-control"
                         value="{{ data_get($sistem, 'url') }}"
-                        placeholder="https://... atau lokasi aplikasi">
+                        placeholder="https://... atau lokasi aplikasi" data-character-limit="500">
                 </div>
 
                 <div class="col-12">
@@ -68,7 +68,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][catatan]"
                         rows="2"
                         class="form-control"
-                        placeholder="Hak akses, batasan, atau prosedur login">{{ data_get($sistem, 'catatan') }}</textarea>
+                        placeholder="Hak akses, batasan, atau prosedur login" data-character-limit="none">{{ data_get($sistem, 'catatan') }}</textarea>
                 </div>
             </div>
         </div>

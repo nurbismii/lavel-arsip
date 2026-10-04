@@ -127,14 +127,14 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Nama Tahap <span class="required-mark">*</span></label>
-                                    <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required placeholder="Contoh: Pemanggilan verifikasi berkas offline - email">
+                                    <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required placeholder="Contoh: Pemanggilan verifikasi berkas offline - email" data-character-limit="255">
                                     @error('nama')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Estimasi Pengerjaan</label>
-                                    <input type="text" name="estimasi" class="form-control @error('estimasi') is-invalid @enderror" value="{{ old('estimasi') }}" placeholder="Contoh: 2 jam / 1 hari kerja">
+                                    <input type="text" name="estimasi" class="form-control @error('estimasi') is-invalid @enderror" value="{{ old('estimasi') }}" placeholder="Contoh: 2 jam / 1 hari kerja" data-character-limit="100">
                                     @error('estimasi')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
@@ -143,11 +143,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Deskripsi / Cara Kerja</label>
-                                    <textarea name="deskripsi" rows="2" class="form-control">{{ old('deskripsi') }}</textarea>
+                                    <textarea name="deskripsi" rows="2" class="form-control" data-character-limit="none">{{ old('deskripsi') }}</textarea>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Lokasi Pelaksanaan</label>
-                                    <input type="text" name="lokasi" class="form-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi') }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                                    <input type="text" name="lokasi" class="form-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi') }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote" data-character-limit="255">
                                     @error('lokasi')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
@@ -213,7 +213,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Catatan Tambahan</label>
-                                    <textarea name="catatan" rows="2" class="form-control">{{ old('catatan') }}</textarea>
+                                    <textarea name="catatan" rows="2" class="form-control" data-character-limit="none">{{ old('catatan') }}</textarea>
                                 </div>
                             </div>
 
@@ -424,11 +424,11 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Nama Tahap <span class="required-mark">*</span></label>
-                                                    <input type="text" name="nama" class="form-control" value="{{ old('nama', $tahap->nama) }}" required>
+                                                    <input type="text" name="nama" class="form-control" value="{{ old('nama', $tahap->nama) }}" required data-character-limit="255">
                                                 </div>
                                                 <div class="col-md-4">
                                                     <label class="form-label">Estimasi Pengerjaan</label>
-                                                    <input type="text" name="estimasi" class="form-control @error('estimasi') is-invalid @enderror" value="{{ old('estimasi', $tahap->estimasi) }}" placeholder="Contoh: 2 jam / 1 hari kerja">
+                                                    <input type="text" name="estimasi" class="form-control @error('estimasi') is-invalid @enderror" value="{{ old('estimasi', $tahap->estimasi) }}" placeholder="Contoh: 2 jam / 1 hari kerja" data-character-limit="100">
                                                     @error('estimasi')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @else
@@ -437,11 +437,11 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Deskripsi / Cara Kerja</label>
-                                                    <textarea name="deskripsi" rows="2" class="form-control">{{ old('deskripsi', $tahap->deskripsi) }}</textarea>
+                                                    <textarea name="deskripsi" rows="2" class="form-control" data-character-limit="none">{{ old('deskripsi', $tahap->deskripsi) }}</textarea>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Lokasi Pelaksanaan</label>
-                                                    <input type="text" name="lokasi" class="form-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi', $tahap->lokasi) }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote">
+                                                    <input type="text" name="lokasi" class="form-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi', $tahap->lokasi) }}" maxlength="255" placeholder="Contoh: Kantor Cabang Makassar, Gudang A, atau Remote" data-character-limit="255">
                                                     @error('lokasi')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @else
@@ -525,7 +525,7 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Catatan Tambahan</label>
-                                                    <textarea name="catatan" rows="2" class="form-control">{{ old('catatan', $tahap->catatan) }}</textarea>
+                                                    <textarea name="catatan" rows="2" class="form-control" data-character-limit="none">{{ old('catatan', $tahap->catatan) }}</textarea>
                                                 </div>
                                             </div>
 

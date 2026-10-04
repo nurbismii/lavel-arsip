@@ -802,6 +802,7 @@
             const html = sanitizeHtml(editorHtml(instance));
 
             textarea.value = plainText === '' && !hasVisibleHtml(html) ? '' : html;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
         function insertHtml(textarea, html) {

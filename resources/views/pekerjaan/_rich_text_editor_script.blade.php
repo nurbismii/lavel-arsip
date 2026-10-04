@@ -46,6 +46,7 @@
 
             if (instance) {
                 textarea.value = editorHtml(instance);
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
             }
         }
 

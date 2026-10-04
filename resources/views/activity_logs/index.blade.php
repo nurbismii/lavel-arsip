@@ -16,7 +16,7 @@
                 name="search"
                 value="{{ $search }}"
                 class="form-control"
-                placeholder="Cari deskripsi, target, atau nama user...">
+                placeholder="Cari deskripsi, target, atau nama user..." data-character-limit="none">
         </div>
         <div class="col-6 col-md-auto">
             <button type="submit" class="btn btn-primary w-100">Cari</button>

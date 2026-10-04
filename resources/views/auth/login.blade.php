@@ -314,7 +314,7 @@
                                 name="email"
                                 placeholder="name@example.com"
                                 value="{{ old('email') }}"
-                                required autofocus>
+                                required autofocus data-character-limit="255">
                             <label for="email" data-login-email-label>
                                 {{ $selectedLoginSource === 'local' ? 'Email Akun V-Ops' : 'Email HRIS V-People' }}
                             </label>
@@ -333,7 +333,7 @@
                                 id="password"
                                 name="password"
                                 placeholder="Password"
-                                required>
+                                required data-character-limit="none">
                             <label for="password" data-login-password-label>
                                 {{ $selectedLoginSource === 'local' ? 'Password Akun V-Ops' : 'Password HRIS V-People' }}
                             </label>

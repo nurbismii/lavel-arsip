@@ -158,7 +158,7 @@
                             data-rich-text-compact="true"
                             data-rich-text-maxlength="1000"
                             data-rich-text-required="{{ in_array($doc->status_dokumen, $completionNoteStatuses, true) ? 'true' : 'false' }}"
-                            {{ in_array($doc->status_dokumen, $completionNoteStatuses, true) ? 'required' : '' }}>{{ \App\Support\RichText::sanitizeDocument(old('keterangan_penyelesaian', $doc->keterangan_penyelesaian)) }}</textarea>
+                            {{ in_array($doc->status_dokumen, $completionNoteStatuses, true) ? 'required' : '' }} data-character-limit="1000">{{ \App\Support\RichText::sanitizeDocument(old('keterangan_penyelesaian', $doc->keterangan_penyelesaian)) }}</textarea>
                         <small class="text-muted d-block mt-1">
                             Wajib diisi untuk status ini. Maksimal 1.000 karakter.
                         </small>

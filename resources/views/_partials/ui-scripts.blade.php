@@ -1,3 +1,4 @@
+<script src="{{ asset('js/character-limits.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     (function initInteractiveBackground() {

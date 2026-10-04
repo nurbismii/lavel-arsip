@@ -28,7 +28,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][nama]"
                         class="form-control @error($errorPrefix . '.' . $rowIndex . '.nama') is-invalid @enderror"
                         value="{{ data_get($pic, 'nama') }}"
-                        placeholder="Nama orang atau tim">
+                        placeholder="Nama orang atau tim" data-character-limit="255">
                     @error($errorPrefix . '.' . $rowIndex . '.nama')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -41,7 +41,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][peran]"
                         class="form-control"
                         value="{{ data_get($pic, 'peran') }}"
-                        placeholder="Contoh: HR Recruitment, Kepala Departemen">
+                        placeholder="Contoh: HR Recruitment, Kepala Departemen" data-character-limit="255">
                 </div>
 
                 <div class="col-md-6">
@@ -51,7 +51,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][kontak]"
                         class="form-control"
                         value="{{ data_get($pic, 'kontak') }}"
-                        placeholder="Email, nomor HP, extension">
+                        placeholder="Email, nomor HP, extension" data-character-limit="500">
                 </div>
 
                 <div class="col-md-6">
@@ -61,7 +61,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][waktu_dihubungi]"
                         class="form-control"
                         value="{{ data_get($pic, 'waktu_dihubungi') }}"
-                        placeholder="Contoh: setelah verifikasi online selesai">
+                        placeholder="Contoh: setelah verifikasi online selesai" data-character-limit="none">
                 </div>
 
                 <div class="col-12">
@@ -70,7 +70,7 @@
                         name="{{ $namePrefix }}[{{ $rowIndex }}][catatan]"
                         rows="2"
                         class="form-control"
-                        placeholder="Hal khusus terkait PIC ini">{{ data_get($pic, 'catatan') }}</textarea>
+                        placeholder="Hal khusus terkait PIC ini" data-character-limit="none">{{ data_get($pic, 'catatan') }}</textarea>
                 </div>
             </div>
         </div>
