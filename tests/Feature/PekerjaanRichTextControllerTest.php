@@ -203,6 +203,17 @@ class PekerjaanRichTextControllerTest extends TestCase
         $this->assertSame(Dokumen::STATUS_DRAFT, $dokumen->fresh()->status_dokumen);
     }
 
+    public function test_tree_content_contains_document_link(): void
+    {
+        [$user, $pekerjaan, $dokumen] = $this->createDocumentRecords();
+
+        $response = $this->actingAs($user)->getJson(route('pekerjaan.tree-content', $pekerjaan));
+
+        $response->assertOk();
+        $this->assertStringContainsString(route('dokumen.lihat', $dokumen), $response->json('html'));
+        $this->assertStringContainsString('dokumen.pdf', $response->json('html'));
+    }
+
     private function createDocumentRecords(): array
     {
         $user = $this->createUser();

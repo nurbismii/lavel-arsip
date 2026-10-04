@@ -157,11 +157,33 @@
     .tree-loading {
         margin-left: 1rem;
     }
+
+    .document-page .tree-node { gap: 1rem; border-radius: 14px !important; }
+    .document-page .tree-folder-label { flex: 1; overflow-wrap: anywhere; }
+    .document-page .tree-folder-actions { flex-shrink: 0; max-width: 16rem; }
+    .document-page .tree-meta { margin-top: .25rem; line-height: 1.5; }
+    .document-page .tree-collapse-toggle { width: 2rem; height: 2rem; flex-shrink: 0; }
+    .document-page .tree-wrapper { padding: 1rem; }
+    .document-page .tree-root > .tree-item:last-child { margin-bottom: 0; }
+    .document-page .btn:focus-visible { outline: 3px solid var(--app-primary); outline-offset: 3px; }
+    @media (max-width: 767.98px) {
+        .document-page .tree-node { flex-direction: column; }
+        .document-page .tree-folder-actions { max-width: none; width: 100%; justify-content: flex-start !important; border-top: 1px solid var(--app-border); padding-top: .75rem; }
+        .document-page .tree-branch { margin-left: 0; padding-left: .75rem; border-left: 1px solid var(--app-border); }
+        .document-page .tree-branch > .tree-item::before,
+        .document-page .tree-branch > .tree-item::after { display: none; }
+        .document-page .tree-wrapper { padding: .75rem; }
+        .document-page .tree-description { margin-left: 0; }
+        .document-page .tree-document { overflow-wrap: anywhere; }
+        .document-page .tree-toolbar { align-items: stretch !important; }
+        .document-page .tree-toolbar-actions { width: 100%; }
+        .document-page .tree-toolbar-actions .btn { flex: 1; }
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="container py-4">
+<div class="container document-page">
 
     @if($errors->any())
     <div class="alert alert-danger">
@@ -179,19 +201,25 @@
     </div>
     @endif
 
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+    <div class="app-page-header mb-4">
         <div>
-            <h5 class="fw-bold mb-1">Dokumen</h5>
-            <small class="text-muted">Cari judul utama atau sub judul tanpa memuat semua data sekaligus.</small>
+            <span class="app-page-eyebrow">Kelola Dokumen</span>
+            <h1 class="app-page-title h3">Dokumen Pekerjaan</h1>
+            <p class="app-page-subtitle">Temukan dokumen, pantau status, dan kelola folder pekerjaan dalam satu tempat.</p>
         </div>
-        <a href="{{ route('pekerjaan.create') }}" class="btn btn-primary btn-sm">
-            + Tambah
+        <div class="app-page-actions">
+        <a href="{{ route('pekerjaan.create') }}" class="btn btn-primary">
+            + Tambah Dokumen
         </a>
+        </div>
     </div>
 
-    <form method="GET" action="{{ route('pekerjaan.index') }}" class="row g-2 mb-4">
-        <div class="col-12 col-lg-7">
+    <form method="GET" action="{{ route('pekerjaan.index') }}" class="filter-panel mb-4" data-loading-form>
+        <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-6">
+            <label for="document-search" class="form-label fw-semibold">Cari dokumen atau folder</label>
             <input
+                id="document-search"
                 type="text"
                 name="search"
                 value="{{ $search }}"
@@ -199,7 +227,8 @@
                 placeholder="Cari judul utama atau sub judul..." data-character-limit="none">
         </div>
         <div class="col-12 col-md-6 col-lg-3">
-            <select name="status_dokumen" class="form-control">
+            <label for="document-status" class="form-label fw-semibold">Status dokumen</label>
+            <select id="document-status" name="status_dokumen" class="form-select">
                 <option value="">Semua Status</option>
                 @foreach($statusDokumenOptions as $value => $label)
                 <option value="{{ $value }}" {{ $statusDokumen === $value ? 'selected' : '' }}>
@@ -208,11 +237,10 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-6 col-md-auto">
-            <button type="submit" class="btn btn-primary w-100">Cari</button>
+        <div class="col-12 col-md-6 col-lg-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill" data-loading-text="Mencari...">Cari</button>
+            <a href="{{ route('pekerjaan.index') }}" class="btn btn-outline-secondary flex-fill">Reset</a>
         </div>
-        <div class="col-6 col-md-auto">
-            <a href="{{ route('pekerjaan.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
         </div>
     </form>
 
@@ -234,16 +262,17 @@
     @endif
 
     @if($pekerjaans->count())
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <small class="text-muted">
-            Gunakan kontrol ini untuk membuka atau menutup semua struktur folder sekaligus.
-        </small>
-        <div class="d-flex gap-2">
+    <div class="tree-toolbar d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <div>
+            <h2 class="h6 fw-bold mb-1">Folder pekerjaan <span class="badge bg-primary rounded-pill ms-1">{{ $pekerjaans->total() }}</span></h2>
+            <small class="text-muted">Buka folder untuk melihat subfolder dan dokumen di dalamnya.</small>
+        </div>
+        <div class="tree-toolbar-actions d-flex gap-2">
             <button type="button" class="btn btn-sm btn-outline-primary" id="expand-all-tree">
-                Expand All
+                Buka Semua
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary" id="collapse-all-tree">
-                Collapse All
+                Tutup Semua
             </button>
         </div>
     </div>
@@ -256,8 +285,13 @@
         {{ $pekerjaans->links() }}
     </div>
     @else
-    <div class="alert alert-warning mb-0">
-        Data pekerjaan tidak ditemukan.
+    <div class="empty-state">
+        <div class="empty-state-icon" aria-hidden="true">📁</div>
+        <h5>{{ $search !== '' || $statusDokumen !== '' ? 'Dokumen tidak ditemukan' : 'Belum ada dokumen pekerjaan' }}</h5>
+        <p>{{ $search !== '' || $statusDokumen !== '' ? 'Coba kata kunci lain atau reset filter untuk melihat semua folder.' : 'Mulai dengan menambahkan folder pekerjaan beserta dokumen pendukungnya.' }}</p>
+        <a href="{{ $search !== '' || $statusDokumen !== '' ? route('pekerjaan.index') : route('pekerjaan.create') }}" class="btn btn-primary mt-3">
+            {{ $search !== '' || $statusDokumen !== '' ? 'Reset Filter' : '+ Tambah Dokumen' }}
+        </a>
     </div>
     @endif
 
@@ -399,11 +433,14 @@
             } catch (error) {
                 collapseElement.innerHTML = `
                     <div class="alert alert-warning small ms-3 mt-2 mb-0">
-                        Gagal memuat isi folder. Silakan coba lagi.
+                        <strong>Isi folder belum dapat dimuat.</strong>
+                        <div>Periksa koneksi Anda, lalu coba muat kembali.</div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-tree-retry>Coba Lagi</button>
                     </div>
                 `;
             } finally {
                 collapseElement.dataset.treeLoading = 'false';
+                collapseElement.dataset.treeRendered = 'true';
             }
         }
 
@@ -414,17 +451,17 @@
             while (queue.length) {
                 const collapseElement = queue.shift();
 
-                if (!collapseElement || processed.has(collapseElement)) {
+                if (!collapseElement || !collapseElement.isConnected || processed.has(collapseElement)) {
                     continue;
                 }
 
                 processed.add(collapseElement);
 
+                await loadTreeContent(collapseElement);
+
                 bootstrap.Collapse.getOrCreateInstance(collapseElement, {
                     toggle: false
                 }).show();
-
-                await loadTreeContent(collapseElement);
 
                 getCollapseElements(collapseElement).forEach((nested) => {
                     if (!processed.has(nested)) {
@@ -435,9 +472,22 @@
         }
 
         document.addEventListener('show.bs.collapse', function(event) {
-            if (event.target.classList.contains('tree-folder-collapse')) {
-                loadTreeContent(event.target);
-            }
+            const folder = event.target;
+            if (!folder.classList.contains('tree-folder-collapse') || folder.dataset.treeLoaded === 'true' || folder.dataset.treeRendered === 'true') return;
+
+            event.preventDefault();
+            loadTreeContent(folder).then(() => {
+                if (!folder.isConnected) return;
+                bootstrap.Collapse.getOrCreateInstance(folder, { toggle: false }).show();
+            });
+        });
+
+        document.addEventListener('click', function(event) {
+            const retryButton = event.target.closest('[data-tree-retry]');
+            if (!retryButton) return;
+            retryButton.disabled = true;
+            retryButton.textContent = 'Memuat...';
+            loadTreeContent(retryButton.closest('.tree-folder-collapse'));
         });
 
         getCollapseElements().forEach((collapseElement) => {
@@ -451,10 +501,13 @@
         }
 
         expandButton.addEventListener('click', function() {
+            const originalText = expandButton.innerHTML;
+            expandButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Membuka...';
             expandButton.disabled = true;
             collapseButton.disabled = true;
 
             expandAllTree().finally(() => {
+                expandButton.innerHTML = originalText;
                 expandButton.disabled = false;
                 collapseButton.disabled = false;
             });

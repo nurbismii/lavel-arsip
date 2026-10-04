@@ -23,6 +23,7 @@
                         data-bs-toggle="collapse"
                         data-bs-target="#{{ $collapseId }}"
                         aria-expanded="{{ $autoExpand ? 'true' : 'false' }}"
+                        aria-label="Buka atau tutup folder {{ $item->judul }}"
                         aria-controls="{{ $collapseId }}">
                     <span class="tree-chevron">></span>
                 </button>
@@ -86,7 +87,7 @@
             </small>
         </div>
 
-        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+        <div class="tree-folder-actions d-flex align-items-center gap-2 flex-wrap justify-content-end">
             @if($hasNestedContent)
             <span class="badge rounded-pill bg-light text-secondary border">
                 {{ $documentsCount }} file / {{ $childrenCount }} folder
@@ -100,10 +101,12 @@
 
                 <form method="POST"
                     action="{{ route('pekerjaan.destroy', $item->id) }}"
-                    onsubmit="return confirm('Hapus pekerjaan {{ addslashes($item->judul) }}? Semua sub pekerjaan dan file di dalamnya juga akan ikut dihapus.')">
+                    data-loading-form data-confirm-title="Hapus folder pekerjaan?"
+                    data-confirm-text="Hapus pekerjaan {{ $item->judul }}? Semua sub pekerjaan dan file di dalamnya juga akan ikut dihapus."
+                    data-confirm-icon="warning" data-confirm-button="Ya, hapus">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" data-loading-text="Menghapus...">
                         Hapus
                     </button>
                 </form>
@@ -117,7 +120,8 @@
         data-tree-content
         data-tree-loaded="false"
         data-tree-url="{{ route('pekerjaan.tree-content', $treeContentParams) }}">
-        <div class="tree-loading px-3 py-3 small text-muted d-none">
+        <div class="tree-loading px-3 py-3 small text-muted d-none" role="status">
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
             Memuat isi folder...
         </div>
     </div>
